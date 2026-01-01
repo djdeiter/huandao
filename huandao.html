@@ -1,0 +1,1919 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>🇹🇼Huandao🚴🏻‍♂️</title>
+
+<style>
+  :root{
+    --bg:#c3eafd;
+    --ink:#0a1a32;
+    --ok:#0fbf88;
+    --img:384px;
+    --lh:#ff7a59;
+    --rail:#7a5cff;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    overflow:hidden;background:var(--bg);
+  }
+
+  .main{ position:fixed; inset:0; display:flex; gap:0; background:var(--bg); }
+  .left{ flex:1 1 50%; position:relative; overflow:hidden; background:transparent; }
+  .right{
+    flex:1 1 50%;
+    position:relative;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    background:var(--bg);
+    padding-top:clamp(24px, 8vh, 56px);
+    gap:12px;
+  }
+  .right img{
+    width:var(--img); height:var(--img);
+    display:block; border:0; border-radius:0; box-shadow:none; background:transparent;
+    object-fit:cover;
+  }
+
+  /* ===== Top-left controls ===== */
+  .controls{
+    position:absolute;
+    left:12px;
+    top:12px;
+    z-index:80;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    pointer-events:auto;
+  }
+  .controls a, .controls button{
+    appearance:none;
+    border:1px solid rgba(0,0,0,.14);
+    background:rgba(255,255,255,.92);
+    border-radius:12px;
+    padding:8px 10px;
+    font:800 12px ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:#143c6b;
+    text-decoration:none;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+  }
+  .controls a:hover, .controls button:hover{ background:#fff; }
+
+  /* Dates card */
+  .dates{
+    width:min(560px, 90%);
+    text-align:center;
+    color:#0a2a48;
+    background:rgba(255,255,255,0.78);
+    border:1px solid rgba(10,42,72,0.08);
+    border-radius:12px;
+    padding:10px 14px;
+    backdrop-filter:saturate(1.05) blur(1px);
+  }
+  .dates h4{margin:0 0 6px 0; font-size:14px; letter-spacing:.02em; color:#143c6b}
+  .dates ul{margin:0; padding:0; list-style:none; font-weight:800; font-size:14px}
+  .dates li{padding:4px 0}
+
+  /* Elevation overlay (replaces dates while open) */
+  .elevOverlay{
+    width:min(760px, 92%);
+    display:none;
+    background:rgba(255,255,255,0.92);
+    border:1px solid rgba(10,42,72,0.10);
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+  }
+  .elevOverlay.isOpen{ display:block; }
+  .dates.isHidden{ display:none; }
+  .elevTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .elevTop h4{ margin:0; color:#143c6b; font-size:14px; }
+  .elevClose{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+  .miniStats{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#365b89}
+  .miniStats b{color:#0a1a32}
+  .elevWrap{position:relative;margin-top:8px}
+  canvas#elevCanvas{
+    width:100%;
+    height:160px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(195,234,253,.7), rgba(255,255,255,.85));
+    border:1px solid rgba(0,0,0,.08);
+  }
+  .elevTip{
+    position:absolute; left:0; top:0; transform:translate(-50%,-110%);
+    display:none;
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:10px;
+    padding:6px 8px;
+    box-shadow:0 10px 26px rgba(0,0,0,.14);
+    font-size:12px; color:#365b89; pointer-events:none;
+    white-space:nowrap;
+  }
+  .elevTip b{color:#0a1a32}
+  .elevHint{margin-top:6px;font-size:12px;color:#4d6f9a}
+
+  /* Map */
+  svg{width:100%;height:100%;display:block;background:transparent}
+  .tw-bg{opacity:.35; pointer-events:none}
+  .route-casing{ fill:none;stroke:#ffffff;stroke-width:8;opacity:.98; vector-effect:non-scaling-stroke; }
+  .route{
+    fill:none;stroke:var(--ok);stroke-width:4;
+    stroke-linecap:round;stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Heatmap layer segments */
+  .route-heat path{
+    fill:none;
+    stroke-width:4;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Highlighted leg */
+  .leg-casing{ fill:none;stroke:#ffffff;stroke-width:10;opacity:.95; vector-effect:non-scaling-stroke; }
+  .leg{
+    fill:none;stroke:#143c6b;stroke-width:6;
+    stroke-linecap:round;stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Stops */
+  .node{cursor:pointer;vector-effect:non-scaling-stroke}
+  .node .hit{fill:transparent}
+  .node .ring{fill:#fff;opacity:.98}
+  .node .core{fill:var(--ok);filter:drop-shadow(0 0 8px rgba(15,191,136,.6))}
+  .node.start .core{fill:#143c6b;filter:drop-shadow(0 0 10px rgba(20,60,107,.45))}
+  .node.finish .core{fill:#0a1a32;filter:drop-shadow(0 0 10px rgba(10,26,50,.35))}
+  .label{font-size:11px;fill:#133a66;user-select:none;pointer-events:none;font-weight:900}
+
+  /* Lighthouses */
+  .lh .ring{fill:#fff;opacity:.98;stroke:var(--lh);stroke-width:2}
+  .lh .core{fill:var(--lh);filter:drop-shadow(0 0 8px rgba(255,122,89,.65))}
+  .lh-label{font-size:11px;fill:#8a3a27;font-weight:900;user-select:none;pointer-events:none}
+
+  /* Rail markers */
+  .rail .ring{fill:#fff;opacity:.98;stroke:var(--rail);stroke-width:2}
+  .rail .core{fill:var(--rail);filter:drop-shadow(0 0 8px rgba(122,92,255,.55))}
+  .rail-label{font-size:11px;fill:#3e2aa8;font-weight:900;user-select:none;pointer-events:none}
+
+  /* Hover popover */
+  .popover{
+    position:absolute; transform:translate(-50%,-100%); pointer-events:none;
+    min-width:220px; max-width:320px; z-index:30; display:none;
+    background:rgba(255,255,255,.96); border:1px solid rgba(0,0,0,.1);
+    border-radius:10px; padding:8px 10px; box-shadow:0 8px 22px rgba(0,0,0,.15)
+  }
+  .popover h4{margin:0 0 4px 0;font-size:13px;color:#143c6b}
+  .popover .row{display:flex;justify-content:space-between;gap:8px;color:#365b89;font-size:12px}
+  .popover .row b{color:#0a1a32}
+
+  /* Modal */
+  .modalHold{position:fixed;inset:0;display:none;place-items:center;z-index:90;background:rgba(20,40,80,.25);backdrop-filter:blur(2px)}
+  .modal{
+    width:min(920px,92vw);max-height:88vh;overflow:auto;border-radius:16px;padding:14px;background:#fff;
+    border:1px solid rgba(0,0,0,.08);box-shadow:0 22px 60px rgba(0,0,0,.25)
+  }
+  .modal header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .modal h3{margin:0;font-size:18px;color:#143c6b}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kv{border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:10px;background:#f7fbff}
+  .k{font-size:12px;color:#486ea3}.v{font-size:18px;font-weight:900;color:#0a1a32}
+  .todo,.cue{border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:10px}
+  .todo h4,.cue h4{margin:0 0 8px 0;color:#143c6b}
+  .todo ul{margin:0;padding-left:18px}
+  .cue .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#365b89;padding:4px 0;border-bottom:1px dashed rgba(0,0,0,.08)}
+  .cue .row:last-child{border-bottom:0}
+  .cue b{color:#0a1a32}
+
+  .mapBlock{margin-top:10px}
+  .mapBlock header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .mapBlock a{margin-left:auto;font-size:12px;text-decoration:underline}
+  .mapFrame{
+    width:100%; aspect-ratio:16/9; border:0; border-radius:12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08)
+  }
+  .btn{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:8px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+
+  /* Route modal table */
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:13px}
+  th{text-align:left;color:#143c6b;font-size:12px;letter-spacing:.02em}
+  td{color:#0a1a32;font-weight:700}
+  td small{display:block;color:#4d6f9a;font-weight:700;margin-top:2px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef6ff;border:1px solid rgba(10,42,72,.10);color:#143c6b;font-weight:900;font-size:12px}
+
+  /* Photos modal */
+  .galleryGrid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px}
+  .card{
+    border:1px solid rgba(0,0,0,.10);
+    border-radius:14px;
+    background:#f7fbff;
+    padding:10px;
+  }
+  .card h4{margin:0 0 8px 0;color:#143c6b}
+  .thumb{
+    width:100%;
+    aspect-ratio:16/10;
+    border-radius:12px;
+    border:2px dashed rgba(0,0,0,.14);
+    display:grid;place-items:center;
+    color:#6b7a90;font-weight:900;
+    background:repeating-linear-gradient(45deg, #f6f7f8 0 12px, #eef1f5 12px 24px);
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:0;display:block}
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 820px){
+    html,body{height:auto}
+    body{overflow:auto}
+    .main{ position:static; display:block; padding-top:var(--safe-top); padding-bottom:var(--safe-bottom); }
+    .left{ height: min(72svh, 78vh); }
+    .left > svg{height:100%; width:100%}
+    .right{ display:block; padding:16px 16px 24px 16px; background:var(--bg); }
+    .right img{ width:min(68vw, 320px); height:auto; margin: 0 auto 12px auto; }
+    .dates{ width:100%; margin:0 auto; border-radius:14px; padding:12px 14px; background:rgba(255,255,255,0.92); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .dates h4{font-size:16px}
+    .dates ul{font-size:15px}
+    .dates li{padding:6px 0}
+    .elevOverlay{width:100%;}
+    canvas#elevCanvas{height:180px;}
+    .label{font-size:13px}
+    .lh-label{display:none}
+    .rail-label{display:none}
+    .popover{min-width:180px; max-width:260px; padding:8px}
+    .node .hit{r:24}
+    .node .ring{r:11}
+    .node .core{r:5}
+    .controls{left:10px; top:10px}
+    .controls a, .controls button{padding:8px 10px; font-size:12px}
+    .galleryGrid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+
+<body>
+
+<div class="main">
+  <div class="left">
+
+    <div class="controls" aria-label="Controls">
+      <button id="btnElev" type="button" aria-pressed="false">海拔 Elevation</button>
+      <button id="btnRail" type="button" aria-pressed="false">火車 Rail</button>
+      <button id="btnRoute" type="button">路線 Route</button>
+      <button id="btnPhotos" type="button">照片 Photos</button>
+
+      <a id="btnGpx" href="#" download>下載 GPX</a>
+      <a id="btnKml" href="#" download>下載 KML</a>
+      <a id="btnGh"  href="#" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <svg id="svg" viewBox="0 0 1016 1221" aria-label="Taiwan route map">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <image class="tw-bg"
+             href="https://upload.wikimedia.org/wikipedia/commons/7/72/Taiwan_location_map.svg"
+             x="0" y="0" width="1016" height="1221" preserveAspectRatio="none"/>
+
+      <g id="layers">
+        <path id="routeCasing" class="route-casing" d=""></path>
+
+        <!-- Normal solid route -->
+        <path id="routePath" class="route" d=""></path>
+
+        <!-- Elevation heatmap route (segments live here) -->
+        <g id="routeHeat" class="route-heat" opacity="0"></g>
+
+        <path id="legCasing" class="leg-casing" d="" opacity="0"></path>
+        <path id="legPath"   class="leg"        d="" opacity="0"></path>
+
+        <g id="nodes"></g>
+        <g id="labels"></g>
+        <g id="lighthouses"></g>
+        <g id="lhLabels"></g>
+
+        <g id="railStations" opacity="0"></g>
+        <g id="railLabels" opacity="0"></g>
+
+        <circle id="debugDot" cx="0" cy="0" r="6" fill="#ff2a6d" opacity="0"></circle>
+      </g>
+    </svg>
+
+    <div id="popover" class="popover" role="tooltip" aria-hidden="true">
+      <h4 id="p-title">—</h4>
+      <div class="row"><span>Date</span><b id="p-date">—</b></div>
+      <div class="row"><span>Leg</span><b id="p-leg-name">—</b></div>
+      <div class="row"><span>Leg distance</span><b id="p-leg-mi">—</b></div>
+      <div class="row"><span>Leg gain</span><b id="p-leg-gain">—</b></div>
+      <div class="row"><span>Lighthouses</span><b id="p-lights">—</b></div>
+    </div>
+  </div>
+
+  <aside class="right">
+    <img id="tripImage" src="image.png" alt="Huandao image"/>
+
+    <div id="datesCard" class="dates" aria-label="Trip dates">
+      <h4>環島行程 — 2026</h4>
+      <ul>
+        <li>02/04/26 <em>Tokyo, Japan</em> — Autechre</li>
+        <li>02/05/26 <em>Taichung, Taiwan</em> 遲家宴會🥟 <span style="opacity:.75"></span></li>
+        <li>02/06/26 <em>Taichung </em> — 開始環島🏁</li>
+        <li>02/07/26 <em>Guosheng (西方⬅️)</em> 燈塔💡</li>
+        <li>02/08/26 <em>Eluanbi (南⬇️)</em> 燈塔💡</li>
+        <li>02/14/26 <em>Sandiaojiao (東方➡️)</em> 燈塔💡</li>
+        <li>02/15/26 <em>Fugui (北⬆️)</em> 燈塔💡</li>
+        <li>02/16/26 <em>Taichung </em> — 結束環島🏁 / 年夜饭🧧</li>
+      </ul>
+      <div style="margin-top:8px;font-size:12px;color:#365b89;font-weight:800">
+        Click a stop marker to highlight that day’s leg + open details.
+      </div>
+    </div>
+
+    <section id="elevOverlay" class="elevOverlay" aria-label="Elevation profile">
+      <div class="elevTop">
+        <h4>Elevation Profile</h4>
+        <button id="btnElevClose" class="elevClose" type="button">Close</button>
+      </div>
+
+      <div class="miniStats" style="margin-top:6px">
+        <span>Total <b id="st-total-mi">—</b></span>
+        <span>Gain <b id="st-gain-ft">—</b></span>
+        <span>Max elev <b id="st-max-ft">—</b></span>
+        <span>Max grade <b id="st-max-grade">—</b></span>
+        <span>Split <b id="st-split-note">effort-weighted</b></span>
+      </div>
+
+      <div class="elevWrap">
+        <canvas id="elevCanvas"></canvas>
+        <div id="elevTip" class="elevTip"></div>
+      </div>
+
+      <div class="elevHint" id="elevHint">
+        Hover for mile/elevation/grade. Click to open the nearest day leg.
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- Modal: Day Leg Details -->
+<div id="modalHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <header>
+      <h3 id="m-title">Day</h3>
+      <button id="m-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div class="grid">
+      <div class="kv"><div class="k">Date</div><div id="m-date" class="v">—</div></div>
+      <div class="kv"><div class="k">Route</div><div id="m-route" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Leg distance</div><div id="m-leg-mi" class="v">—</div></div>
+      <div class="kv"><div class="k">Total distance (start → here)</div><div id="m-from-start" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Leg elev gain</div><div id="m-leg-gain" class="v">—</div></div>
+      <div class="kv"><div class="k">Total elev gain (start → here)</div><div id="m-elev-start" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Est. time (leg)</div><div id="m-time-leg" class="v">—</div></div>
+      <div class="kv"><div class="k">Miles to end</div><div id="m-to-end" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Lighthouses on this day</div><div id="m-lights" class="v">—</div></div>
+      <div class="kv"><div class="k">Day endpoint</div><div id="m-endpoint" class="v">—</div></div>
+
+      <div class="todo" style="grid-column:1 / -1">
+        <h4>Notes / ideas</h4>
+        <ul id="m-todo"></ul>
+      </div>
+
+      <div class="cue" style="grid-column:1 / -1">
+        <h4>Nearby Cue Sheet Items</h4>
+        <div id="m-cues">Cue sheet not loaded yet.</div>
+      </div>
+    </div>
+
+    <section class="mapBlock">
+      <header>
+        <h4 style="margin:0;color:#143c6b">Map (MyMaps)</h4>
+        <a id="m-map-link" href="#" target="_blank" rel="noopener">View on MyMaps (zoomed)</a>
+      </header>
+      <iframe id="m-map" class="mapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src=""></iframe>
+    </section>
+
+    <footer style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <button id="m-toggle-highlight" class="btn" type="button">Toggle highlight</button>
+      <button id="m-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Route overview -->
+<div id="routeHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rt-title">
+    <header>
+      <h3 id="rt-title">Route — 11 Day Plan</h3>
+      <button id="rt-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px 0">
+      <span class="pill">Splits are effort-weighted (distance + climbing)</span>
+      <span class="pill">Click a row to highlight + open Day modal</span>
+    </div>
+
+    <div style="overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:14px">
+      <table id="rt-table" aria-label="Route day-by-day table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Date</th>
+            <th>From → To</th>
+            <th>Leg</th>
+            <th>Gain</th>
+            <th>Est.</th>
+            <th>Lights</th>
+            <th>End mi</th>
+          </tr>
+        </thead>
+        <tbody id="rt-body"></tbody>
+      </table>
+    </div>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="rt-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Photos -->
+<div id="photosHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="phg-title">
+    <header>
+      <h3 id="phg-title">Photos</h3>
+      <button id="phg-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <p style="margin:6px 0 12px 0;color:#365b89;font-weight:800">
+      Images from the <code>Hudandao Journey</code>.
+    </p>
+
+    <div class="galleryGrid" id="galleryGrid"></div>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="phg-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Lighthouse Photo + Map -->
+<div id="photoHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ph-title">
+    <header>
+      <h3 id="ph-title" style="margin:0;font-size:18px;color:#143c6b">Lighthouse</h3>
+      <button id="ph-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div class="thumb" id="ph-frame" aria-label="Empty photo placeholder">
+      Photo will be uploaded when we reach this lighthouse 📷
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#365b89;font-weight:800">
+      <div>Date: <b id="ph-date" style="color:#0a1a32">—</b></div>
+      <div>Day: <b id="ph-day" style="color:#0a1a32">—</b></div>
+      <div>Coordinates: <b id="ph-coords" style="color:#0a1a32">—</b></div>
+    </div>
+
+    <section class="mapBlock" style="margin-top:12px">
+      <header>
+        <h4 style="margin:0;color:#143c6b">Map (MyMaps)</h4>
+        <a id="ph-map-link" href="#" target="_blank" rel="noopener">View on MyMaps (zoomed)</a>
+      </header>
+      <iframe id="ph-map" class="mapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src=""></iframe>
+    </section>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="ph-close-bottom" class="btn">Close</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+/* ======================= ROUTE SOURCES ======================== */
+const ROUTE_GPX_URL = 'https://huandao.lospalmos.org/routes/HuandaoFred/Hudandao_lighthouse_finalall.gpx';
+const ROUTE_KML_URL = 'https://huandao.lospalmos.org/routes/HuandaoFred/Hudandao_lighthouse_final.kml';
+const CUESHEET_URL  = 'https://huandao.lospalmos.org/routes/HuandaoFred/cutesheet.csv';
+
+/* TODO: set your real GitHub URL */
+const GITHUB_URL = 'https://github.com/djdeiter/huandao';
+
+/* ======================= MANUAL START/STOP OVERRIDES =======================
+   If you already have "new start/stop points", paste them into MANUAL_STOPS.
+
+   Format: array length MUST be PARTS+1 (start + day1end + ... + day11end/finish)
+   Each entry: { lat: number, lng: number, name?: string }
+   - If provided, we snap each point to nearest route polyline point (RAW)
+   - If null/empty, we fall back to smart effort-weighted + cue-snapped splitting
+*/
+const MANUAL_STOPS = null;
+/*
+const MANUAL_STOPS = [
+  {name:'Taichung (Start)', lat:24.1374, lng:120.6867}, // stop 0
+  {name:'Day 1 end', lat:24.0000, lng:120.5000},        // stop 1
+  ...
+  {name:'Taichung (Finish)', lat:24.1374, lng:120.6867} // stop 11
+];
+*/
+
+/* ======================= SYNC WITH GOOGLE MYMAPS  ================= */
+const MYMAPS_MID = '1e5xrpzrgsXJfPaXwErqOqQzKby-yhqM';
+const MYMAPS_KML  = `https://www.google.com/maps/d/kml?mid=${encodeURIComponent(MYMAPS_MID)}&forcekml=1`;
+const MYMAPS_EMBED_BASE = `https://www.google.com/maps/d/embed?mid=${encodeURIComponent(MYMAPS_MID)}`;
+const MYMAPS_EDIT_BASE  = `https://www.google.com/maps/d/edit?mid=${encodeURIComponent(MYMAPS_MID)}`;
+
+function buildEmbedSrc(lat, lng, zoom=10){
+  const ll = `${lat},${lng}`;
+  return `${MYMAPS_EMBED_BASE}&ll=${encodeURIComponent(ll)}&z=${encodeURIComponent(String(zoom))}`;
+}
+function buildEditUrl(lat, lng, zoom=10){
+  const ll = `${lat},${lng}`;
+  return `${MYMAPS_EDIT_BASE}&ll=${encodeURIComponent(ll)}&z=${encodeURIComponent(String(zoom))}`;
+}
+
+/* ======================= 11 riding days (Day 1..11) ========================= */
+const PARTS = 11;
+const RIDE_DAYS = Array.from({length:PARTS},(_,i)=>{
+  const day=i+1;
+  const date = new Date(Date.UTC(2026,1,6 + i)); // Feb = 1
+  return {day, date: date.toISOString().slice(0,10)};
+});
+function dayDate(dayNum){ return RIDE_DAYS.find(d=>d.day===dayNum)?.date ?? '—'; }
+
+/* ======================= Lighthouses (day = 1..11) ========================= */
+const LIGHTHOUSES = [
+  {name:'House of Chi - Photo with Mr. Chi', lat:24.186,  lng:120.726,  day:1},
+  {name:'Guosheng (West) Lighthouse',       lat:23.1280, lng:120.0330, day:2},
+  {name:'Eluanbi (South) Lighthouse',       lat:21.9022, lng:120.8526, day:3},
+  {name:'Sandiaojiao (East) Lighthouse',    lat:25.0076, lng:121.9426, day:9},
+  {name:'Fugui (North) Lighthouse',         lat:25.2976, lng:121.5382, day:10},
+];
+
+/* ======================= Rail stations (toggle overlay) ===================== */
+const RAIL_STATIONS = [
+  {name:'Taichung',  lat:24.1374, lng:120.6867},
+  {name:'Changhua',  lat:24.0817, lng:120.5383},
+  {name:'Yunlin (Douliu)', lat:23.7092, lng:120.5429},
+  {name:'Chiayi',    lat:23.4791, lng:120.4414},
+  {name:'Tainan',    lat:22.9971, lng:120.2120},
+  {name:'Kaohsiung', lat:22.6394, lng:120.3028},
+  {name:'Pingtung',  lat:22.6696, lng:120.4867},
+  {name:'Taitung',   lat:22.7936, lng:121.1235},
+  {name:'Yuli',      lat:23.3267, lng:121.3150},
+  {name:'Hualien',   lat:23.9929, lng:121.6015},
+  {name:'Suao',      lat:24.5943, lng:121.8528},
+  {name:'Yilan',     lat:24.7544, lng:121.7580},
+  {name:'Jiaoxi',    lat:24.8274, lng:121.7757},
+  {name:'Taipei',    lat:25.0478, lng:121.5170},
+  {name:'Taoyuan',   lat:24.9892, lng:121.3133},
+  {name:'Hsinchu',   lat:24.8013, lng:120.9713},
+  {name:'Miaoli',    lat:24.5648, lng:120.8228},
+];
+
+/* ======================= Photo galleries (placeholders) ===================== */
+const PHOTO_GALLERIES = [
+  {title:'Training', items:[
+    {caption:'Intervals / climbs', url:''},
+    {caption:'Long ride fuel test', url:''},
+    {caption:'Bike fit tweaks', url:''},
+  ]},
+  {title:'Pre-Ride', items:[
+    {caption:'Tokyo show / travel', url:''},
+    {caption:'Taichung prep day', url:''},
+    {caption:'Bike build + packing', url:''},
+  ]},
+  {title:'Ride', items:[
+    {caption:'Day 1 finish', url:''},
+    {caption:'Lighthouse moment', url:''},
+    {caption:'Victory lap', url:''},
+  ]},
+];
+
+/* ======================= Map projection ==================================== */
+const BOUNDS={top:26.4,bottom:21.7,left:118.0,right:122.3};
+const PX={w:1016,h:1221};
+function project(lat,lng){
+  const x=((lng-BOUNDS.left)/(BOUNDS.right-BOUNDS.left))*PX.w;
+  const y=((BOUNDS.top-lat)/(BOUNDS.top-BOUNDS.bottom))*PX.h;
+  return {x,y};
+}
+
+/* ======================= Distance helpers ================================== */
+const toRad=d=>d*Math.PI/180;
+function hav(a,b){
+  const R=6371008.8;
+  const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+  const s=Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function cumulative(P){
+  const d=[0]; let s=0;
+  for(let i=1;i<P.length;i++){ s+=hav(P[i-1],P[i]); d.push(s); }
+  return d;
+}
+const m2mi=m=>m/1609.344;
+const ftPerM=3.280839895;
+const fmtHrs=h=>{
+  const H=Math.floor(h), M=Math.round((h-H)*60);
+  return `${H}h ${String(M).padStart(2,'0')}m`;
+};
+
+/* ======================= DOM refs ========================================== */
+const $=s=>document.querySelector(s);
+
+const svg=$('#svg'),
+      routeCasing=$('#routeCasing'),
+      routePath=$('#routePath'),
+      routeHeat=$('#routeHeat'),
+      legCasing=$('#legCasing'),
+      legPath=$('#legPath'),
+      nodes=$('#nodes'), labels=$('#labels'),
+      lhLayer=$('#lighthouses'), lhLabels=$('#lhLabels'),
+      railLayer=$('#railStations'), railLabels=$('#railLabels'),
+      pop=$('#popover'), debugDot=$('#debugDot');
+
+const modalHold=$('#modalHold');
+const routeHold=$('#routeHold');
+const photosHold=$('#photosHold');
+const photoHold=$('#photoHold');
+
+const dayMapIframe = $('#m-map');
+const dayMapLink   = $('#m-map-link');
+const lhMapIframe  = $('#ph-map');
+const lhMapLink    = $('#ph-map-link');
+
+const elevOverlay = $('#elevOverlay');
+const datesCard   = $('#datesCard');
+const elevCanvas  = $('#elevCanvas');
+const elevTip     = $('#elevTip');
+const elevHint    = $('#elevHint');
+
+const stTotalMi   = $('#st-total-mi');
+const stGainFt    = $('#st-gain-ft');
+const stMaxFt     = $('#st-max-ft');
+const stMaxGrade  = $('#st-max-grade');
+const stSplitNote = $('#st-split-note');
+
+/* Controls */
+const btnElev      = $('#btnElev');
+const btnElevClose = $('#btnElevClose');
+const btnRail      = $('#btnRail');
+const btnRoute     = $('#btnRoute');
+const btnPhotos    = $('#btnPhotos');
+
+const btnGpx       = $('#btnGpx');
+const btnKml       = $('#btnKml');
+const btnGh        = $('#btnGh');
+
+/* Modal refs: Day */
+const mTitle = $('#m-title');
+const mDate  = $('#m-date');
+const mRoute = $('#m-route');
+const mLegMi = $('#m-leg-mi');
+const mFromStart = $('#m-from-start');
+const mLegGain = $('#m-leg-gain');
+const mElevStart = $('#m-elev-start');
+const mTimeLeg = $('#m-time-leg');
+const mToEnd = $('#m-to-end');
+const mLights = $('#m-lights');
+const mTodo = $('#m-todo');
+const mCues = $('#m-cues');
+const mEndpoint = $('#m-endpoint');
+const mToggleHighlight = $('#m-toggle-highlight');
+
+/* Route modal refs */
+const rtBody = $('#rt-body');
+
+/* Wire download/link targets */
+btnGpx.href = ROUTE_GPX_URL;
+btnKml.href = ROUTE_KML_URL;
+btnGh.href  = GITHUB_URL;
+btnGpx.setAttribute('download', 'HuandaoFred.gpx');
+btnKml.setAttribute('download', 'HuandaoFred.kml');
+
+/* ======================= State ============================================= */
+let RAW=[], RAW_CUM_M=[], RAW_GAIN_FT_CUM=[], RAW_EFF_CUM=[];
+
+let STOPS=[], STOP_CUM_M=[], STOP_RAW_INDEX=[];
+let STOP_NAMES=[];
+let STOP_END_CUE = Array(PARTS+1).fill(null);
+
+let CUES=[];
+let ELEV_SRC=null;
+
+let isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+let highlightedDay = null;
+let railOn = false;
+let heatmapOn = false;
+
+/* ======================= UX: Elevation toggle ============================== */
+function openElevation(){
+  elevOverlay.classList.add('isOpen');
+  datesCard.classList.add('isHidden');
+  btnElev.setAttribute('aria-pressed','true');
+  setHeatmap(true);           // <-- NEW: enable route heatmap when Elevation is opened
+  drawElevation();
+}
+function closeElevation(){
+  elevOverlay.classList.remove('isOpen');
+  datesCard.classList.remove('isHidden');
+  btnElev.setAttribute('aria-pressed','false');
+  setHeatmap(false);          // <-- NEW: restore normal route when Elevation closes
+  elevTip.style.display='none';
+}
+function toggleElevation(){
+  elevOverlay.classList.contains('isOpen') ? closeElevation() : openElevation();
+}
+btnElev.addEventListener('click', toggleElevation);
+btnElevClose.addEventListener('click', closeElevation);
+
+/* ======================= UX: Rail toggle =================================== */
+function setRail(on){
+  railOn = !!on;
+  btnRail.setAttribute('aria-pressed', railOn ? 'true' : 'false');
+  railLayer.setAttribute('opacity', railOn ? '1' : '0');
+  railLabels.setAttribute('opacity', railOn ? '1' : '0');
+}
+btnRail.addEventListener('click', ()=>setRail(!railOn));
+
+/* ======================= UX: Route modal =================================== */
+function openRouteModal(){
+  buildRouteTable();
+  routeHold.style.display='grid';
+  routeHold.setAttribute('aria-hidden','false');
+}
+function closeRouteModal(){
+  routeHold.style.display='none';
+  routeHold.setAttribute('aria-hidden','true');
+}
+btnRoute.addEventListener('click', openRouteModal);
+$('#rt-close').addEventListener('click', closeRouteModal);
+$('#rt-close-bottom').addEventListener('click', closeRouteModal);
+routeHold.addEventListener('click', (e)=>{ if(e.target===routeHold) closeRouteModal(); });
+
+/* ======================= UX: Photos modal ================================== */
+function openPhotosModal(){
+  renderGallery();
+  photosHold.style.display='grid';
+  photosHold.setAttribute('aria-hidden','false');
+}
+function closePhotosModal(){
+  photosHold.style.display='none';
+  photosHold.setAttribute('aria-hidden','true');
+}
+btnPhotos.addEventListener('click', openPhotosModal);
+$('#phg-close').addEventListener('click', closePhotosModal);
+$('#phg-close-bottom').addEventListener('click', closePhotosModal);
+photosHold.addEventListener('click', (e)=>{ if(e.target===photosHold) closePhotosModal(); });
+
+/* ======================= Global ESC handler ================================ */
+window.addEventListener('keydown',(e)=>{
+  if(e.key !== 'Escape') return;
+  if(photoHold.style.display==='grid'){ closePhoto(); return; }
+  if(modalHold.style.display==='grid'){ closeDayModal(); return; }
+  if(routeHold.style.display==='grid'){ closeRouteModal(); return; }
+  if(photosHold.style.display==='grid'){ closePhotosModal(); return; }
+  if(elevOverlay.classList.contains('isOpen')){ closeElevation(); return; }
+});
+
+/* ======================= CSV parsing ======================================= */
+function parseCSV(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(lines.length<2) return [];
+  const header=splitCSVLine(lines[0]).map(h=>h.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cells=splitCSVLine(lines[i]);
+    const obj={};
+    header.forEach((h,idx)=>obj[h]= (cells[idx] ?? '').trim());
+    rows.push(obj);
+  }
+  return rows;
+}
+function splitCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1]==='"'){ cur+='"'; i++; }
+      else inQ=!inQ;
+    }else if(ch===',' && !inQ){
+      out.push(cur); cur='';
+    }else{
+      cur+=ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+function parseMaybeNumber(x){
+  const v=Number(String(x).replace(/[^\d\.\-]/g,''));
+  return Number.isFinite(v)?v:null;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ======================= Cue helpers ======================================= */
+function cueMiles(row){ return parseMaybeNumber(row?.['Distance (miles) From Start']); }
+function cueElevationFt(row){ return parseMaybeNumber(row?.['Elevation (ft)']); }
+function cueText(row){
+  const a=(row?.['Description']||'').trim();
+  const b=(row?.['Notes']||'').trim();
+  const c=(row?.['Type']||'').trim();
+  return `${c} ${a} ${b}`.replace(/\s+/g,' ').trim();
+}
+function cueLooksLikeTurn(row){
+  const t=cueText(row).toLowerCase();
+  return /\b(left|right|turn|merge|onto|exit|keep|continue)\b/.test(t);
+}
+function cueLooksLikeLodging(row){
+  const t=cueText(row).toLowerCase();
+  const good = /(hotel|hostel|motel|inn|bnb|b&b|guesthouse|homestay|stay|resort|lodge)/.test(t) ||
+               /(station|tra|hsr|rail|火車站|車站)/.test(t) ||
+               /(city|town|downtown|市|鎮|區|鄉)/.test(t);
+  const bad = cueLooksLikeTurn(row) || /(roundabout|traffic light|intersection)/.test(t);
+  return good && !bad;
+}
+function cueScoreForTarget(row, targetMi){
+  const mi = cueMiles(row);
+  if(mi==null) return Infinity;
+  const d = Math.abs(mi - targetMi);
+  let score = d;
+  if(cueLooksLikeLodging(row)) score -= 4.0;
+  if(/(station|tra|hsr|火車站|車站)/i.test(cueText(row))) score -= 2.0;
+  if(cueLooksLikeTurn(row)) score += 3.0;
+  return score;
+}
+function bestCueNear(targetMi, windowMi=14){
+  if(!CUES.length) return null;
+  let best=null, bestScore=Infinity;
+  for(const r of CUES){
+    const mi = cueMiles(r);
+    if(mi==null) continue;
+    if(Math.abs(mi-targetMi) > windowMi) continue;
+    const sc = cueScoreForTarget(r, targetMi);
+    if(sc < bestScore){
+      bestScore = sc;
+      best = {...r, _mi: mi, _score: sc};
+    }
+  }
+  return best;
+}
+function cuesNear(mile, windowMi=10){
+  if(!CUES.length) return [];
+  const out=[];
+  for(const r of CUES){
+    const m=cueMiles(r);
+    if(m==null) continue;
+    if(Math.abs(m-mile) <= windowMi) out.push({...r, _mi:m});
+  }
+  out.sort((a,b)=>a._mi-b._mi);
+  return out.slice(0,12);
+}
+function stopNameFromCue(row){
+  if(!row) return '';
+  const desc=(row['Description']||'').trim();
+  const notes=(row['Notes']||'').trim();
+  const t=(row['Type']||'').trim();
+  return (desc || notes || t || '').replace(/\s+/g,' ').trim();
+}
+function safeShortName(s, max=22){
+  s=(s||'').trim();
+  if(!s) return '';
+  if(s.length<=max) return s;
+  return s.slice(0,max-1).trim()+'…';
+}
+
+/* ======================= GPX / KML parsers ================================= */
+function parseGPX(xmlText){
+  const xml=new DOMParser().parseFromString(xmlText,'application/xml');
+  let pts=[...xml.querySelectorAll('trkpt')].map(n=>({
+    lat:+n.getAttribute('lat'),
+    lng:+n.getAttribute('lon'),
+    ele:n.querySelector('ele')?+n.querySelector('ele').textContent:undefined
+  }));
+  if(!pts.length){
+    pts=[...xml.querySelectorAll('rtept')].map(n=>({
+      lat:+n.getAttribute('lat'),
+      lng:+n.getAttribute('lon'),
+      ele:n.querySelector('ele')?+n.querySelector('ele').textContent:undefined
+    }));
+  }
+  if(!pts.length) throw new Error('No <trkpt> or <rtept> in GPX');
+  return pts;
+}
+function parseKML(xmlText){
+  const xml=new DOMParser().parseFromString(xmlText,'application/xml');
+  const coordsNodes=[...xml.querySelectorAll('LineString > coordinates')];
+  if(!coordsNodes.length) throw new Error('No LineString coordinates in KML');
+  const all=[];
+  for(const node of coordsNodes){
+    const raw=node.textContent.trim();
+    const pts = raw.split(/\s+/).map(s=>{
+      const [lon,lat,alt] = s.split(',').map(Number);
+      return {lat, lng:lon, ele:(Number.isFinite(alt)?alt:undefined)};
+    }).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));
+    if(pts.length) all.push(...pts);
+  }
+  return all;
+}
+
+/* ======================= SVG helper ======================================== */
+function svgEl(tag,attrs={},text){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  if(text!=null) el.textContent=text;
+  return el;
+}
+
+/* ======================= Core geometry helpers ============================= */
+function pathFrom(points){
+  if(!points.length) return '';
+  const xy=points.map(p=>project(p.lat,p.lng));
+  let d=`M ${xy[0].x} ${xy[0].y}`;
+  for(let i=1;i<xy.length;i++){
+    const a=xy[i-1],b=xy[i],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+    d+=` Q ${cx} ${cy} ${b.x} ${b.y}`;
+  }
+  return d;
+}
+function pathFromRawSlice(a,b){
+  const i0=Math.max(0, Math.min(RAW.length-1, Math.min(a,b)));
+  const i1=Math.max(0, Math.min(RAW.length-1, Math.max(a,b)));
+  return pathFrom(RAW.slice(i0, i1+1));
+}
+function fitRouteOnce(P){
+  if(!P?.length){ svg.setAttribute('viewBox',`0 0 ${PX.w} ${PX.h}`); return; }
+  let minLat=Infinity,maxLat=-Infinity,minLng=Infinity,maxLng=-Infinity;
+  for(const p of P){minLat=Math.min(minLat,p.lat);maxLat=Math.max(maxLat,p.lat);minLng=Math.min(minLng,p.lng);maxLng=Math.max(maxLng,p.lng);}
+  const pad=0.12;
+  let a=minLat-(maxLat-minLat)*pad, b=maxLat+(maxLat-minLat)*pad,
+      c=minLng-(maxLng-minLng)*pad, d=maxLng+(maxLng-minLng)*pad;
+  a=Math.max(a,BOUNDS.bottom); b=Math.min(b,BOUNDS.top);
+  c=Math.max(c,BOUNDS.left);   d=Math.min(d,BOUNDS.right);
+  const tl=project(b,c), br=project(a,d);
+  let x=Math.min(tl.x,br.x), y=Math.min(tl.y,br.y), w=Math.abs(br.x-tl.x), h=Math.abs(br.y-tl.y);
+  if(!(isFinite(w)&&isFinite(h)) || w<10 || h<10){ x=0; y=0; w=PX.w; h=PX.h; }
+  svg.setAttribute('viewBox',`${x} ${y} ${w} ${h}`);
+}
+
+/* ======================= Elevation gain between raw indices ================= */
+function elevGainBetweenRawIndices(a, b){
+  if(!RAW?.length) return 0;
+  let i0 = Math.max(0, Math.min(RAW.length - 1, Math.min(a, b)));
+  let i1 = Math.max(0, Math.min(RAW.length - 1, Math.max(a, b)));
+  let gainM = 0;
+  for(let i = i0 + 1; i <= i1; i++){
+    const prev = RAW[i-1]?.ele;
+    const cur  = RAW[i]?.ele;
+    if(prev == null || cur == null) continue;
+    const d = cur - prev;
+    if(d > 0) gainM += d;
+  }
+  return gainM;
+}
+
+/* ======================= Heatmap route rendering ===========================
+   When Elevation is open, route line becomes a heatmap by elevation.
+*/
+function elevationToHeatColor(ft, minFt, maxFt){
+  const t = (maxFt>minFt) ? Math.max(0, Math.min(1, (ft-minFt)/(maxFt-minFt))) : 0.5;
+  // Blue (low) -> Red (high)
+  const hue = 210 + (0-210)*t; // 210..0
+  return `hsl(${hue.toFixed(1)} 85% 52%)`;
+}
+function buildRouteHeatmap(){
+  routeHeat.innerHTML = '';
+
+  const hasEle = RAW.some(p=>p.ele!=null);
+  if(!hasEle) return false;
+
+  // Build min/max (ft)
+  let minFt = Infinity, maxFt = -Infinity;
+  for(const p of RAW){
+    if(p.ele==null) continue;
+    const ft = p.ele * ftPerM;
+    if(ft<minFt) minFt=ft;
+    if(ft>maxFt) maxFt=ft;
+  }
+  if(!isFinite(minFt) || !isFinite(maxFt)) return false;
+
+  // Segment size: tradeoff between smoothness and DOM size
+  const MAX_SEGS = 260;
+  const step = Math.max(2, Math.ceil(RAW.length / MAX_SEGS));
+
+  for(let i=0; i<RAW.length-1; i+=step){
+    const j = Math.min(RAW.length-1, i+step);
+
+    // Average elevation in this segment
+    let sum=0, n=0;
+    for(let k=i; k<=j; k++){
+      const e = RAW[k].ele;
+      if(e==null) continue;
+      sum += (e*ftPerM);
+      n++;
+    }
+    const avgFt = n ? (sum/n) : minFt;
+    const color = elevationToHeatColor(avgFt, minFt, maxFt);
+
+    const segPath = svgEl('path', { d: pathFromRawSlice(i, j), stroke: color });
+    routeHeat.appendChild(segPath);
+  }
+  return true;
+}
+function setHeatmap(on){
+  heatmapOn = !!on;
+  if(!heatmapOn){
+    routeHeat.setAttribute('opacity','0');
+    routePath.setAttribute('opacity','1');
+    return;
+  }
+  const ok = buildRouteHeatmap();
+  if(ok){
+    routePath.setAttribute('opacity','0');
+    routeHeat.setAttribute('opacity','1');
+  }else{
+    // No elevation available -> keep normal route
+    routeHeat.setAttribute('opacity','0');
+    routePath.setAttribute('opacity','1');
+  }
+}
+
+/* ======================= Smarter 11-day split (existing) ==================== */
+function buildEffortCurves(){
+  RAW_CUM_M = cumulative(RAW);
+
+  RAW_GAIN_FT_CUM = new Array(RAW.length).fill(0);
+  let gainFt = 0;
+  for(let i=1;i<RAW.length;i++){
+    const a=RAW[i-1].ele, b=RAW[i].ele;
+    if(a!=null && b!=null){
+      const d=(b-a)*ftPerM;
+      if(d>0) gainFt += d;
+    }
+    RAW_GAIN_FT_CUM[i] = gainFt;
+  }
+
+  const K = 6.0;
+  RAW_EFF_CUM = new Array(RAW.length).fill(0);
+  for(let i=0;i<RAW.length;i++){
+    const distMi = m2mi(RAW_CUM_M[i]);
+    const gFt = RAW_GAIN_FT_CUM[i];
+    RAW_EFF_CUM[i] = distMi + K*(gFt/1000);
+  }
+  return {K};
+}
+function lowerBound(arr, target){
+  let lo=0, hi=arr.length-1;
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+    if(arr[mid] < target) lo=mid+1;
+    else hi=mid;
+  }
+  return lo;
+}
+function interpAtCumulative(cumArr, i, target){
+  if(i<=0) return {idx:0, t:0};
+  const a=cumArr[i-1], b=cumArr[i];
+  const len=(b-a)||1;
+  const t=Math.max(0, Math.min(1, (target-a)/len));
+  return {idx:i-1, t};
+}
+function lerpPoint(a,b,t){
+  const lat=(1-t)*a.lat+t*b.lat;
+  const lng=(1-t)*a.lng+t*b.lng;
+  const ele=(a.ele!=null && b.ele!=null) ? (1-t)*a.ele+t*b.ele : undefined;
+  return {lat,lng,ele};
+}
+function nearestRawIndexByMiles(mi){
+  const targetM = mi * 1609.344;
+  const i = lowerBound(RAW_CUM_M, targetM);
+  const a=i, b=Math.max(0,i-1);
+  if(a<=0) return 0;
+  if(a>=RAW_CUM_M.length) return RAW_CUM_M.length-1;
+  return (Math.abs(RAW_CUM_M[a]-targetM) < Math.abs(RAW_CUM_M[b]-targetM)) ? a : b;
+}
+function buildStopsSmart(){
+  const {K} = buildEffortCurves();
+  stSplitNote.textContent = `effort-weighted (K=${K.toFixed(1)} mi / 1000ft)`;
+
+  const totalEff = RAW_EFF_CUM[RAW_EFF_CUM.length-1] || 1;
+  const targets = Array.from({length:PARTS+1}, (_,i)=> i*(totalEff/PARTS));
+
+  const baseStops = [];
+  for(const te of targets){
+    const i = lowerBound(RAW_EFF_CUM, te);
+    if(i<=0){
+      baseStops.push({rawIndex:0, distM:0, ...RAW[0]});
+      continue;
+    }
+    if(i>=RAW.length){
+      const last=RAW[RAW.length-1];
+      baseStops.push({rawIndex:RAW.length-1, distM:RAW_CUM_M[RAW_CUM_M.length-1], ...last});
+      continue;
+    }
+    const {idx, t} = interpAtCumulative(RAW_EFF_CUM, i, te);
+    const p = lerpPoint(RAW[idx], RAW[idx+1], t);
+    const distM = (1-t)*RAW_CUM_M[idx] + t*RAW_CUM_M[idx+1];
+    baseStops.push({rawIndex:idx, distM, ...p});
+  }
+
+  STOP_END_CUE = Array(PARTS+1).fill(null);
+  const snapped = baseStops.map((s, i)=>({...s}));
+  for(let stopIdx=1; stopIdx<PARTS; stopIdx++){
+    const targetMi = m2mi(snapped[stopIdx].distM);
+    const best = bestCueNear(targetMi, 14);
+    if(!best) continue;
+
+    const cueMi = best._mi;
+    const rawIdx = nearestRawIndexByMiles(cueMi);
+    snapped[stopIdx].rawIndex = rawIdx;
+    snapped[stopIdx].distM = RAW_CUM_M[rawIdx];
+    snapped[stopIdx].lat = RAW[rawIdx].lat;
+    snapped[stopIdx].lng = RAW[rawIdx].lng;
+    snapped[stopIdx].ele = RAW[rawIdx].ele;
+    STOP_END_CUE[stopIdx] = best;
+  }
+
+  const lastIdx = RAW.length-1;
+  snapped[PARTS].rawIndex = lastIdx;
+  snapped[PARTS].distM = RAW_CUM_M[lastIdx];
+  snapped[PARTS].lat = RAW[lastIdx].lat;
+  snapped[PARTS].lng = RAW[lastIdx].lng;
+  snapped[PARTS].ele = RAW[lastIdx].ele;
+
+  for(let i=1;i<snapped.length;i++){
+    if(snapped[i].rawIndex < snapped[i-1].rawIndex){
+      snapped[i].rawIndex = snapped[i-1].rawIndex;
+      snapped[i].distM = RAW_CUM_M[snapped[i].rawIndex];
+      snapped[i].lat = RAW[snapped[i].rawIndex].lat;
+      snapped[i].lng = RAW[snapped[i].rawIndex].lng;
+      snapped[i].ele = RAW[snapped[i].rawIndex].ele;
+      STOP_END_CUE[i] = null;
+    }
+  }
+
+  STOPS = snapped.map(s => ({lat:s.lat, lng:s.lng, ele:s.ele}));
+  STOP_RAW_INDEX = snapped.map(s => s.rawIndex);
+  STOP_CUM_M = snapped.map(s => s.distM);
+}
+
+/* ======================= Manual stops support ============================== */
+function nearestRawIndexByLatLng(lat, lng){
+  // Fast-ish: downsample scan, then local refine
+  const N = RAW.length;
+  if(!N) return 0;
+
+  const stride = Math.max(3, Math.floor(N / 900));
+  let bestI = 0;
+  let bestD = Infinity;
+
+  for(let i=0;i<N;i+=stride){
+    const d = hav({lat,lng}, RAW[i]);
+    if(d < bestD){ bestD=d; bestI=i; }
+  }
+
+  const lo = Math.max(0, bestI - stride*3);
+  const hi = Math.min(N-1, bestI + stride*3);
+  for(let i=lo;i<=hi;i++){
+    const d = hav({lat,lng}, RAW[i]);
+    if(d < bestD){ bestD=d; bestI=i; }
+  }
+  return bestI;
+}
+
+function buildStopsFromManual(manualStops){
+  if(!Array.isArray(manualStops) || manualStops.length !== (PARTS+1)) return false;
+
+  RAW_CUM_M = cumulative(RAW);
+
+  STOP_END_CUE = Array(PARTS+1).fill(null);
+
+  const idxs = [];
+  for(let i=0;i<manualStops.length;i++){
+    const s = manualStops[i];
+    if(!s || !Number.isFinite(s.lat) || !Number.isFinite(s.lng)) return false;
+    idxs.push(nearestRawIndexByLatLng(s.lat, s.lng));
+  }
+
+  // Ensure monotonic (so legs don't invert if two points snap weirdly)
+  for(let i=1;i<idxs.length;i++){
+    if(idxs[i] < idxs[i-1]) idxs[i] = idxs[i-1];
+  }
+
+  STOP_RAW_INDEX = idxs.slice();
+  STOP_CUM_M = idxs.map(i => RAW_CUM_M[i]);
+  STOPS = idxs.map(i => ({lat:RAW[i].lat, lng:RAW[i].lng, ele:RAW[i].ele}));
+
+  // Names: use provided names if present
+  STOP_NAMES = manualStops.map((s, i)=>{
+    if(s?.name) return String(s.name);
+    if(i===0) return 'Start';
+    if(i===PARTS) return 'Finish';
+    return `Day ${i} end`;
+  });
+
+  return true;
+}
+
+/* ======================= Stop naming ======================================= */
+function buildStopNames(){
+  // If manual already set STOP_NAMES, keep them
+  if(STOP_NAMES?.length === PARTS+1 && STOP_NAMES.some(Boolean)) return;
+
+  STOP_NAMES = Array(PARTS+1).fill('');
+  STOP_NAMES[0] = 'Taichung (Start)';
+  STOP_NAMES[PARTS] = 'Taichung (Finish)';
+
+  for(let i=1;i<PARTS;i++){
+    const cu = STOP_END_CUE[i];
+    if(cu){
+      const nm = stopNameFromCue(cu);
+      STOP_NAMES[i] = nm ? nm : `Day ${i} end`;
+    }else{
+      const mi = m2mi(STOP_CUM_M[i] || 0);
+      const any = bestCueNear(mi, 8);
+      STOP_NAMES[i] = (any && stopNameFromCue(any)) ? stopNameFromCue(any) : `Day ${i} end`;
+    }
+  }
+}
+function routeName(dayNum){
+  const a = STOP_NAMES[dayNum-1] || `Stop ${dayNum-1}`;
+  const b = STOP_NAMES[dayNum]   || `Stop ${dayNum}`;
+  return `${safeShortName(a, 28)} → ${safeShortName(b, 28)}`;
+}
+
+/* ======================= Red dot + highlight =============================== */
+function setRedDotLatLng(lat,lng,show=true){
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)){
+    debugDot.setAttribute('opacity','0');
+    return;
+  }
+  const {x,y}=project(lat,lng);
+  debugDot.setAttribute('cx', x);
+  debugDot.setAttribute('cy', y);
+  debugDot.setAttribute('opacity', show ? 1 : 0);
+}
+function setRedDotAtRawIndex(idx, show=true){
+  idx = Math.max(0, Math.min(RAW.length-1, idx|0));
+  setRedDotLatLng(RAW[idx].lat, RAW[idx].lng, show);
+}
+function computeTotalDistanceMi(){
+  return RAW_CUM_M.length ? m2mi(RAW_CUM_M[RAW_CUM_M.length-1]) : 0;
+}
+function computeLegMiles(dayNum){
+  const n=Math.max(1, Math.min(PARTS, dayNum));
+  return m2mi((STOP_CUM_M[n]-STOP_CUM_M[n-1]) || 0);
+}
+function computeMilesFromStartToStop(stopIndex){
+  return m2mi(STOP_CUM_M[stopIndex] || 0);
+}
+function computeLegGainFt(dayNum){
+  if(!RAW.some(p=>p.ele!=null)) return null;
+  const n=Math.max(1, Math.min(PARTS, dayNum));
+  const a = STOP_RAW_INDEX[n-1];
+  const b = STOP_RAW_INDEX[n];
+  return elevGainBetweenRawIndices(a,b) * ftPerM;
+}
+function computeGainFromStartToStopFt(stopIndex){
+  if(!RAW.some(p=>p.ele!=null)) return null;
+  return elevGainBetweenRawIndices(STOP_RAW_INDEX[0], STOP_RAW_INDEX[stopIndex]) * ftPerM;
+}
+function highlightDay(dayNum, dotMode='mid'){
+  if(!RAW.length || !STOPS.length) return;
+
+  if(dayNum == null){
+    legCasing.setAttribute('opacity','0');
+    legPath.setAttribute('opacity','0');
+    legCasing.setAttribute('d','');
+    legPath.setAttribute('d','');
+    highlightedDay = null;
+    return;
+  }
+  const n = Math.max(1, Math.min(PARTS, dayNum));
+  const a = STOP_RAW_INDEX[n-1];
+  const b = STOP_RAW_INDEX[n];
+  const d = pathFromRawSlice(a,b);
+
+  legCasing.setAttribute('d', d);
+  legPath.setAttribute('d', d);
+  legCasing.setAttribute('opacity','1');
+  legPath.setAttribute('opacity','1');
+  highlightedDay = n;
+
+  if(dotMode === 'start') setRedDotAtRawIndex(a, true);
+  else if(dotMode === 'end') setRedDotAtRawIndex(b, true);
+  else setRedDotAtRawIndex(Math.round((a+b)/2), true);
+}
+
+/* ======================= Render stops (offset if near) ===================== */
+function computeStopRenderXY(){
+  const base = STOPS.map(p=>project(p.lat,p.lng));
+  const out  = base.map(p=>({x:p.x, y:p.y}));
+
+  const MIN = 30;
+  const NUDGE = 18;
+
+  for(let i=1;i<out.length;i++){
+    const dx = out[i].x - out[i-1].x;
+    const dy = out[i].y - out[i-1].y;
+    const d  = Math.hypot(dx,dy);
+    if(d < MIN){
+      const nx = (d===0 ? 0 : -dy/d);
+      const ny = (d===0 ? 1 :  dx/d);
+      const sign = (i % 2 === 0) ? 1 : -1;
+      out[i].x += sign * nx * NUDGE;
+      out[i].y += sign * ny * NUDGE;
+    }
+  }
+  return out;
+}
+
+function renderDayStops(){
+  nodes.innerHTML=''; labels.innerHTML='';
+  const renderXY = computeStopRenderXY();
+
+  STOPS.forEach((p,i)=>{
+    const {x,y}=renderXY[i];
+
+    const isStart = (i===0);
+    const isFinish = (i===STOPS.length-1);
+
+    const label =
+      isStart ? 'Start (Day 1)' :
+      isFinish ? 'Finish (Day 11)' :
+      `Day ${i} end`;
+
+    const g=svgEl('g',{
+      class:`node day${isStart?' start':''}${isFinish?' finish':''}`,
+      'data-stop':i,
+      tabindex:'0',
+      role:'button',
+      'aria-label':label
+    });
+
+    const hitR = isStart ? (isTouch?30:24) : (isTouch?24:18);
+    const ringR= isStart ? (isTouch?13:12) : (isTouch?11:10);
+    const coreR= isStart ? (isTouch?6:5)   : (isTouch?5:4);
+
+    g.append(
+      svgEl('circle',{class:'hit',cx:x,cy:y,r:hitR}),
+      svgEl('circle',{class:'ring',cx:x,cy:y,r:ringR}),
+      svgEl('circle',{class:'core',cx:x,cy:y,r:coreR})
+    );
+    nodes.appendChild(g);
+
+    const name = STOP_NAMES[i] ? safeShortName(STOP_NAMES[i], 20) : '';
+    const txt =
+      isStart ? `Start · ${name || 'Taichung'}` :
+      isFinish ? `Finish · ${name || 'Taichung'}` :
+      `D${i} · ${name || 'End'}`;
+    labels.appendChild(svgEl('text',{class:'label',x:x+10,y:y-10}, txt));
+
+    if(!isTouch){
+      g.addEventListener('mousemove',(e)=>showPopover(e,i));
+      g.addEventListener('mouseleave',hidePopover);
+    }
+
+    g.addEventListener('click',()=>{
+      const dayNum = (i===0 ? 1 : i);
+      openDayLeg(dayNum, true);
+    });
+    g.addEventListener('keydown',(e)=>{
+      if(e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        const dayNum = (i===0 ? 1 : i);
+        openDayLeg(dayNum, true);
+      }
+    });
+  });
+}
+
+function renderLighthouses(){
+  lhLayer.innerHTML=''; lhLabels.innerHTML='';
+  LIGHTHOUSES.forEach((lh,idx)=>{
+    const {x,y}=project(lh.lat, lh.lng);
+    const g=svgEl('g',{class:'node lh','data-lh':idx,tabindex:'0',role:'button','aria-label':lh.name});
+    g.append(
+      svgEl('circle',{class:'hit',cx:x,cy:y,r:isTouch?24:18}),
+      svgEl('circle',{class:'ring',cx:x,cy:y,r:isTouch?11:10}),
+      svgEl('circle',{class:'core',cx:x,cy:y,r:isTouch?5:4})
+    );
+    lhLayer.appendChild(g);
+    lhLabels.appendChild(svgEl('text',{class:'lh-label',x:x+10,y:y-10},lh.name));
+
+    const open = ()=>openPhotoModal(lh);
+    g.addEventListener('click', open);
+    g.addEventListener('keydown',(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+  });
+}
+
+function renderRailStations(){
+  railLayer.innerHTML=''; railLabels.innerHTML='';
+  RAIL_STATIONS.forEach((st,idx)=>{
+    const {x,y}=project(st.lat, st.lng);
+    const g=svgEl('g',{class:'node rail','data-rail':idx,tabindex:'0',role:'button','aria-label':`Rail: ${st.name}`});
+    g.append(
+      svgEl('circle',{class:'hit',cx:x,cy:y,r:isTouch?22:16}),
+      svgEl('circle',{class:'ring',cx:x,cy:y,r:isTouch?10:9}),
+      svgEl('circle',{class:'core',cx:x,cy:y,r:isTouch?4:3})
+    );
+    railLayer.appendChild(g);
+    railLabels.appendChild(svgEl('text',{class:'rail-label',x:x+10,y:y-10},st.name));
+    g.addEventListener('click', ()=>{
+      setRedDotLatLng(st.lat, st.lng, true);
+    });
+  });
+}
+
+function renderAll(){
+  const d=pathFrom(RAW);
+  routeCasing.setAttribute('d', d);
+  routePath.setAttribute('d', d);
+
+  // If heatmap currently on, rebuild it (e.g., after reload/resize)
+  if(heatmapOn) setHeatmap(true);
+
+  renderDayStops();
+  renderLighthouses();
+  renderRailStations();
+  fitRouteOnce(RAW);
+
+  setRedDotLatLng(RAW[0]?.lat, RAW[0]?.lng, true);
+}
+
+/* ======================= Popover =========================================== */
+function showPopover(evt, stopIndex){
+  if(isTouch) return;
+  const dayNum = (stopIndex===0 ? 1 : stopIndex);
+  const date = dayDate(dayNum);
+  const legMi = computeLegMiles(dayNum);
+  const legGainFt = computeLegGainFt(dayNum);
+  const lights = LIGHTHOUSES.filter(lh=>lh.day===dayNum).length;
+
+  $('#p-title').textContent = `Day ${dayNum}`;
+  $('#p-date').textContent = date;
+  $('#p-leg-name').textContent = routeName(dayNum);
+  $('#p-leg-mi').textContent = `${legMi.toFixed(1)} mi`;
+  $('#p-leg-gain').textContent = (legGainFt!=null ? `${Math.round(legGainFt).toLocaleString()} ft` : '—');
+  $('#p-lights').textContent = lights;
+
+  const rect=$('.left').getBoundingClientRect();
+  pop.style.left=`${evt.clientX-rect.left}px`;
+  pop.style.top =`${evt.clientY-rect.top-12}px`;
+  pop.style.display='block';
+  pop.setAttribute('aria-hidden','false');
+}
+function hidePopover(){ if(isTouch) return; pop.style.display='none'; pop.setAttribute('aria-hidden','true'); }
+
+/* ======================= Elevation source + draw ============================ */
+function buildElevationSource(){
+  const hasGpxEle = RAW.some(p=>p.ele!=null);
+  if(hasGpxEle){
+    const distMi=RAW_CUM_M.map(m2mi);
+    const elevFt=RAW.map(p=>p.ele==null?null:(p.ele*ftPerM));
+    for(let i=0;i<elevFt.length;i++){
+      if(elevFt[i]==null) elevFt[i]= (i?elevFt[i-1]:0);
+    }
+    ELEV_SRC={distMi,elevFt,kind:'gpx'};
+    elevHint.textContent='Hover for mile/elevation/grade. Click to open the nearest day leg. (Source: GPX elevation)';
+    return;
+  }
+
+  const pts=[];
+  for(const r of CUES){
+    const mi=cueMiles(r);
+    const ft=cueElevationFt(r);
+    if(mi!=null && ft!=null) pts.push({mi,ft});
+  }
+  pts.sort((a,b)=>a.mi-b.mi);
+  if(pts.length >= 3){
+    ELEV_SRC={distMi:pts.map(p=>p.mi), elevFt:pts.map(p=>p.ft), kind:'cues'};
+    elevHint.textContent='Hover for mile/elevation/grade. Click to open the nearest day leg. (Source: cue sheet elevations)';
+    return;
+  }
+
+  ELEV_SRC=null;
+  elevHint.textContent='No elevation data found in GPX or cue sheet.';
+}
+function computeGainAndGrade(src){
+  if(!src) return {gainFt:0,maxFt:0,maxGrade:0};
+  const {distMi,elevFt}=src;
+  let gain=0, maxFt=-Infinity, maxGrade=0;
+  for(let i=1;i<distMi.length;i++){
+    const dh=elevFt[i]-elevFt[i-1];
+    if(dh>0) gain += dh;
+    maxFt=Math.max(maxFt,elevFt[i]);
+  }
+  const winMi=0.5;
+  let j0=0;
+  for(let i=1;i<distMi.length;i++){
+    while(distMi[i]-distMi[j0] > winMi && j0<i-1) j0++;
+    const dd=distMi[i]-distMi[j0];
+    if(dd>0.05){
+      const dh=elevFt[i]-elevFt[j0];
+      const grade=(dh/(dd*5280))*100;
+      maxGrade=Math.max(maxGrade, Math.abs(grade));
+    }
+  }
+  return {gainFt:gain,maxFt:isFinite(maxFt)?maxFt:0,maxGrade};
+}
+function resizeCanvasToCSS(canvas){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=Math.max(1, window.devicePixelRatio||1);
+  canvas.width=Math.floor(rect.width*dpr);
+  canvas.height=Math.floor(rect.height*dpr);
+  return {w:canvas.width, h:canvas.height, dpr};
+}
+function downsampleProfile(src, maxPoints=1200){
+  const n=src.distMi.length;
+  if(n<=maxPoints) return src;
+  const step=Math.ceil(n/maxPoints);
+  const distMi=[], elevFt=[];
+  for(let i=0;i<n;i+=step){ distMi.push(src.distMi[i]); elevFt.push(src.elevFt[i]); }
+  return {distMi,elevFt,kind:src.kind};
+}
+function gradeAt(src, i){
+  if(!src || i<=0) return 0;
+  const dd = (src.distMi[i]-src.distMi[i-1]) * 5280;
+  if(dd<=0) return 0;
+  const dh = src.elevFt[i]-src.elevFt[i-1];
+  return (dh/dd)*100;
+}
+function drawElevation(){
+  const ctx=elevCanvas.getContext('2d');
+  const {w,h,dpr}=resizeCanvasToCSS(elevCanvas);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,w,h);
+  if(!ELEV_SRC){
+    ctx.globalAlpha=0.8;
+    ctx.font=`${14*dpr}px ui-sans-serif, system-ui`;
+    ctx.fillText('No elevation data', 16*dpr, 32*dpr);
+    return;
+  }
+  const src=downsampleProfile(ELEV_SRC);
+  const x0=src.distMi[0], x1=src.distMi[src.distMi.length-1];
+  let yMin=Infinity,yMax=-Infinity;
+  for(const y of src.elevFt){ yMin=Math.min(yMin,y); yMax=Math.max(yMax,y); }
+  if(yMax-yMin < 50){ yMax=yMin+50; }
+  const padX=14*dpr, padY=16*dpr;
+  const W=w-2*padX, H=h-2*padY;
+
+  ctx.globalAlpha=0.18; ctx.lineWidth=1*dpr;
+  for(let k=1;k<=3;k++){
+    const y=padY + (H*k/4);
+    ctx.beginPath(); ctx.moveTo(padX,y); ctx.lineTo(padX+W,y); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  ctx.beginPath();
+  for(let i=0;i<src.distMi.length;i++){
+    const x=padX + ((src.distMi[i]-x0)/(x1-x0))*W;
+    const y=padY + (1-((src.elevFt[i]-yMin)/(yMax-yMin)))*H;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.lineWidth=2.2*dpr;
+  ctx.stroke();
+
+  ctx.globalAlpha=0.14;
+  ctx.lineTo(padX+W, padY+H);
+  ctx.lineTo(padX,   padY+H);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha=1;
+}
+function dayIndexAtMiles(mi){
+  const stopMi=STOP_CUM_M.map(m2mi);
+  for(let i=1;i<stopMi.length;i++){
+    if(mi <= stopMi[i]) return i;
+  }
+  return PARTS;
+}
+function wireElevationInteractions(){
+  const onMove=(evt)=>{
+    if(!ELEV_SRC) return;
+    const rect=elevCanvas.getBoundingClientRect();
+    const x=Math.max(0, Math.min(rect.width, (evt.clientX-rect.left)));
+    const src=downsampleProfile(ELEV_SRC);
+    const mi0=src.distMi[0], mi1=src.distMi[src.distMi.length-1];
+    const mi = mi0 + (x/rect.width)*(mi1-mi0);
+
+    let best=0, bd=Infinity;
+    for(let i=0;i<src.distMi.length;i++){
+      const d=Math.abs(src.distMi[i]-mi);
+      if(d<bd){ bd=d; best=i; }
+    }
+    const elev=Math.round(src.elevFt[best]);
+    const grd=gradeAt(src,best);
+    elevTip.innerHTML = `Mile <b>${src.distMi[best].toFixed(1)}</b> · Elev <b>${elev} ft</b> · Grade <b>${grd.toFixed(1)}%</b>`;
+    elevTip.style.left = `${x}px`;
+    elevTip.style.top  = `0px`;
+    elevTip.style.display='block';
+
+    const miHere = src.distMi[best];
+    highlightDay(dayIndexAtMiles(miHere), 'mid');
+    setRedDotAtRawIndex(nearestRawIndexByMiles(miHere), true);
+  };
+  const onLeave=()=>{
+    elevTip.style.display='none';
+    if(highlightedDay==null){
+      highlightDay(null);
+      debugDot.setAttribute('opacity','0');
+    }
+  };
+  const onClick=(evt)=>{
+    if(!ELEV_SRC) return;
+    const rect=elevCanvas.getBoundingClientRect();
+    const x=Math.max(0, Math.min(rect.width, (evt.clientX-rect.left)));
+    const src=downsampleProfile(ELEV_SRC);
+    const mi0=src.distMi[0], mi1=src.distMi[src.distMi.length-1];
+    const mi = mi0 + (x/rect.width)*(mi1-mi0);
+    setRedDotAtRawIndex(nearestRawIndexByMiles(mi), true);
+    openDayLeg(dayIndexAtMiles(mi), true);
+  };
+
+  elevCanvas.addEventListener('mousemove', onMove);
+  elevCanvas.addEventListener('mouseleave', onLeave);
+  elevCanvas.addEventListener('click', onClick);
+}
+
+/* ======================= Day modal ========================================= */
+function openDayLeg(dayNum, doHighlight=true){
+  const n=Math.max(1, Math.min(PARTS, dayNum));
+  if(doHighlight) highlightDay(n, 'mid');
+
+  const legMi = computeLegMiles(n);
+  const fromStartMi = computeMilesFromStartToStop(n);
+  const totalMi = computeTotalDistanceMi();
+  const toEndMi = Math.max(0, totalMi - fromStartMi);
+
+  const legGainFt = computeLegGainFt(n);
+  const totalGainFt = computeGainFromStartToStopFt(n);
+
+  const mph=14, bufferH=0.8;
+  const estTimeH = (legMi/mph) + bufferH;
+
+  const lights = LIGHTHOUSES.filter(lh=>lh.day===n);
+
+  mTitle.textContent = `Day ${n} — ${dayDate(n)}`;
+  mDate.textContent  = dayDate(n);
+  mRoute.textContent = routeName(n);
+
+  mLegMi.textContent = `${legMi.toFixed(1)} mi`;
+  mFromStart.textContent = `${fromStartMi.toFixed(1)} mi`;
+  mToEnd.textContent = `${toEndMi.toFixed(1)} mi`;
+
+  mLegGain.textContent = (legGainFt!=null ? `${Math.round(legGainFt).toLocaleString()} ft` : '—');
+  mElevStart.textContent = (totalGainFt!=null ? `${Math.round(totalGainFt).toLocaleString()} ft` : '—');
+
+  mTimeLeg.textContent = fmtHrs(estTimeH);
+  mLights.textContent = lights.length ? lights.map(x=>x.name).join(' • ') : '—';
+
+  const cue = STOP_END_CUE[n];
+  mEndpoint.textContent = cue ? safeShortName(stopNameFromCue(cue), 50) : safeShortName(STOP_NAMES[n], 50);
+
+  mTodo.innerHTML='';
+  const items=(window.TODO_BY_DAY?.[n]) || ['Notes.'];
+  items.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; mTodo.appendChild(li); });
+
+  const cues = cuesNear(fromStartMi, 10);
+  if(!CUES.length) mCues.textContent = 'Cue sheet not loaded.';
+  else if(!cues.length) mCues.textContent = 'No cues near this day end.';
+  else{
+    mCues.innerHTML = cues.map(r=>{
+      const mi=r._mi.toFixed(1);
+      const typ=(r['Type']||'').slice(0,24);
+      const desc=(r['Description']||r['Notes']||'').slice(0,110);
+      return `<div class="row"><span><b>${mi} mi</b> · ${escapeHtml(typ)}</span><span>${escapeHtml(desc)}</span></div>`;
+    }).join('');
+  }
+
+  const endPt = STOPS[n];
+  const zoom = 10;
+  dayMapIframe.src = buildEmbedSrc(endPt.lat, endPt.lng, zoom);
+  dayMapLink.href  = buildEditUrl (endPt.lat, endPt.lng, zoom);
+
+  const a=STOP_RAW_INDEX[n-1], b=STOP_RAW_INDEX[n];
+  setRedDotAtRawIndex(Math.round((a+b)/2), true);
+
+  modalHold.style.display='grid';
+  modalHold.setAttribute('aria-hidden','false');
+
+  mToggleHighlight.onclick = ()=>{
+    if(highlightedDay===n){
+      highlightDay(null);
+      debugDot.setAttribute('opacity','0');
+    }else{
+      highlightDay(n,'mid');
+    }
+  };
+}
+function closeDayModal(){
+  modalHold.style.display='none';
+  modalHold.setAttribute('aria-hidden','true');
+}
+$('#m-close').addEventListener('click',closeDayModal);
+$('#m-close-bottom')?.addEventListener('click',closeDayModal);
+modalHold.addEventListener('click',(e)=>{if(e.target===modalHold)closeDayModal()});
+
+/* ======================= Lighthouse modal ================================== */
+function openPhotoModal(lh){
+  $('#ph-title').textContent = lh.name;
+  $('#ph-day').textContent   = lh.day;
+  $('#ph-date').textContent  = dayDate(lh.day) || '—';
+  $('#ph-coords').textContent= `${lh.lat.toFixed(4)}, ${lh.lng.toFixed(4)}`;
+
+  const zoom = 12;
+  lhMapIframe.src = buildEmbedSrc(lh.lat, lh.lng, zoom);
+  lhMapLink.href  = buildEditUrl (lh.lat, lh.lng, zoom);
+
+  photoHold.style.display='grid';
+  photoHold.setAttribute('aria-hidden','false');
+}
+function closePhoto(){
+  photoHold.style.display='none';
+  photoHold.setAttribute('aria-hidden','true');
+}
+$('#ph-close').addEventListener('click',closePhoto);
+$('#ph-close-bottom').addEventListener('click',closePhoto);
+photoHold.addEventListener('click',(e)=>{if(e.target===photoHold)closePhoto()});
+
+/* ======================= Route table modal build =========================== */
+function buildRouteTable(){
+  rtBody.innerHTML = '';
+  for(let d=1; d<=PARTS; d++){
+    const legMi = computeLegMiles(d);
+    const gainFt = computeLegGainFt(d);
+    const endMi = computeMilesFromStartToStop(d);
+    const mph=14, bufferH=0.8;
+    const estTimeH = (legMi/mph) + bufferH;
+    const lights = LIGHTHOUSES.filter(lh=>lh.day===d).length;
+
+    const tr=document.createElement('tr');
+    tr.style.cursor='pointer';
+    tr.innerHTML = `
+      <td>Day ${d}</td>
+      <td>${dayDate(d)}</td>
+      <td>${escapeHtml(routeName(d))}<small>End: ${escapeHtml(safeShortName(STOP_NAMES[d], 60) || '—')}</small></td>
+      <td>${legMi.toFixed(1)} mi</td>
+      <td>${gainFt==null ? '—' : `${Math.round(gainFt).toLocaleString()} ft`}</td>
+      <td>${fmtHrs(estTimeH)}</td>
+      <td>${lights ? lights : '—'}</td>
+      <td>${endMi.toFixed(1)}</td>
+    `;
+    tr.addEventListener('click', ()=>{
+      closeRouteModal();
+      openDayLeg(d, true);
+    });
+    rtBody.appendChild(tr);
+  }
+}
+
+/* ======================= Photos modal build ================================ */
+function renderGallery(){
+  const grid = $('#galleryGrid');
+  grid.innerHTML = '';
+  for(const g of PHOTO_GALLERIES){
+    const card=document.createElement('div');
+    card.className='card';
+    const title=document.createElement('h4');
+    title.textContent=g.title;
+    card.appendChild(title);
+
+    for(const item of g.items){
+      const wrap=document.createElement('div');
+      wrap.style.marginBottom='10px';
+
+      const thumb=document.createElement('div');
+      thumb.className='thumb';
+      if(item.url){
+        const img=document.createElement('img');
+        img.src=item.url;
+        img.alt=item.caption || g.title;
+        thumb.innerHTML='';
+        thumb.appendChild(img);
+      }else{
+        thumb.textContent = item.caption || 'Photo';
+      }
+
+      const cap=document.createElement('div');
+      cap.style.marginTop='6px';
+      cap.style.fontSize='12px';
+      cap.style.color='#365b89';
+      cap.style.fontWeight='900';
+      cap.textContent=item.caption || '';
+
+      wrap.appendChild(thumb);
+      wrap.appendChild(cap);
+      card.appendChild(wrap);
+    }
+    grid.appendChild(card);
+  }
+}
+
+/* ======================= Finalize ========================================== */
+function finalize(){
+  // Prefer manual stops if provided; otherwise do smart splitting
+  const usedManual = buildStopsFromManual(MANUAL_STOPS);
+  if(!usedManual){
+    buildStopsSmart();
+    buildStopNames();
+  }else{
+    // manual already sets STOP_NAMES; still ensure viewBox & stats work
+    buildEffortCurves(); // keeps RAW_CUM_M populated for elevation & other computations
+    buildStopNames();
+  }
+
+  renderAll();
+
+  buildElevationSource();
+
+  const totalMi=computeTotalDistanceMi();
+  const {gainFt,maxFt,maxGrade}=computeGainAndGrade(ELEV_SRC);
+  stTotalMi.textContent = `${totalMi.toFixed(1)} mi`;
+  stGainFt.textContent  = ELEV_SRC ? `${Math.round(gainFt).toLocaleString()} ft` : '—';
+  stMaxFt.textContent   = ELEV_SRC ? `${Math.round(maxFt).toLocaleString()} ft` : '—';
+  stMaxGrade.textContent= ELEV_SRC ? `${maxGrade.toFixed(1)}%` : '—';
+
+  drawElevation();
+  wireElevationInteractions();
+  window.addEventListener('resize', ()=>{
+    drawElevation();
+    if(heatmapOn) setHeatmap(true);
+  });
+
+  highlightDay(1,'mid');
+}
+
+/* ========================= LOAD ============================================ */
+async function tryAutoLoad(){
+  try{
+    const r=await fetch(ROUTE_GPX_URL,{cache:'no-store'});
+    if(r.ok) RAW=parseGPX(await r.text());
+  }catch(_){}
+  if(!RAW.length){
+    try{
+      const r=await fetch(ROUTE_KML_URL,{cache:'no-store'});
+      if(r.ok) RAW=parseKML(await r.text());
+    }catch(_){}
+  }
+  if(!RAW.length){
+    try{
+      const r=await fetch(MYMAPS_KML,{cache:'no-store'});
+      if(r.ok) RAW=parseKML(await r.text());
+    }catch(_){ console.warn('MyMaps KML fetch issue (CORS likely)'); }
+  }
+  try{
+    const r=await fetch(CUESHEET_URL,{cache:'no-store'});
+    if(r.ok) CUES=parseCSV(await r.text());
+  }catch(_){}
+
+  if(!RAW.length){
+    elevHint.textContent='Route failed to load (GPX/KML). Check URL/CORS.';
+    return;
+  }
+  finalize();
+}
+
+/* Boot */
+window.addEventListener('DOMContentLoaded', tryAutoLoad);
+</script>
+</body>
+</html>
