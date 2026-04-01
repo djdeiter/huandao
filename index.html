@@ -1,0 +1,3925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>🇹🇼Huandao🚴🏻‍♂️</title>
+
+<style>
+  :root{
+    --bg:#c3eafd;
+    --ink:#0a1a32;
+    --ok:#0fbf88;
+    --img:384px;
+    --lh:#ff7a59;
+    --rail:#7a5cff;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    overflow:hidden;background:var(--bg);
+  }
+
+  .main{ position:fixed; inset:0; display:flex; gap:0; background:var(--bg); }
+  .left{ flex:1 1 50%; position:relative; overflow:hidden; background:transparent; }
+  .right{
+    flex:1 1 50%;
+    position:relative;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    background:var(--bg);
+    padding-top:clamp(24px, 8vh, 56px);
+    gap:12px;
+  }
+
+  .logoWrap{
+    width:var(--img); height:var(--img);
+    position:relative;
+  }
+  .right img#tripImage{
+    width:100%; height:100%;
+    display:block; border:0; border-radius:0; box-shadow:none; background:transparent;
+    object-fit:cover;
+    transition: border-radius 0.2s, box-shadow 0.2s;
+  }
+  .right img#tripImage.photoOpen{
+    border-radius:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.18);
+    cursor:pointer;
+  }
+  
+  /* Photo navigation arrows */
+  .photoNav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid rgba(0,0,0,.12);
+    background:rgba(255,255,255,.92);
+    color:#143c6b;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    z-index:10;
+    transition:background 0.15s, transform 0.15s;
+  }
+  .photoNav:hover{
+    background:#fff;
+    transform:translateY(-50%) scale(1.08);
+  }
+  .photoNav.prev{ left:8px; }
+  .photoNav.next{ right:8px; }
+  .logoWrap.hasPhoto .photoNav{ display:flex; }
+
+  /* thumbs overlay replaces logo image */
+  .thumbOverlay{
+    position:absolute; inset:0;
+    display:none;
+    background:rgba(255,255,255,0.92);
+    border:1px solid rgba(10,42,72,0.10);
+    border-radius:14px;
+    overflow:auto;
+    padding:10px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+  }
+  .thumbOverlay.isOpen{ display:block; }
+  .thumbTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .thumbTop h4{margin:0;color:#143c6b;font-size:14px}
+  .thumbClose{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+  .thumbGrid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:8px;
+  }
+  .thumbItem{
+    aspect-ratio:16/10;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.12);
+    overflow:hidden;
+    background:#f6f7f8;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    position:relative;
+  }
+  .thumbItem img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumbItem span{
+    position:absolute; left:8px; bottom:6px;
+    background:rgba(255,255,255,0.85);
+    border:1px solid rgba(0,0,0,.10);
+    padding:2px 6px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    color:#143c6b;
+  }
+
+  /* ===== Top-left controls ===== */
+  .controls{
+    position:absolute;
+    left:12px;
+    top:12px;
+    z-index:120;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    pointer-events:auto;
+  }
+  .controls a, .controls button{
+    appearance:none;
+    border:1px solid rgba(0,0,0,.14);
+    background:rgba(255,255,255,.92);
+    border-radius:12px;
+    padding:8px 10px;
+    font:900 12px ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:#143c6b;
+    text-decoration:none;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+  }
+  .controls a:hover, .controls button:hover{ background:#fff; }
+
+  /* Status pill */
+  .statusPill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.14);
+    background:rgba(255,255,255,.92);
+    color:#143c6b;
+    font-weight:1000;
+    font-size:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    max-width:min(520px, 80vw);
+  }
+  .statusDot{width:10px;height:10px;border-radius:999px;background:#bbb;flex:0 0 auto}
+  .statusText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Download dropdown */
+  .dlWrap{ position:relative; }
+  .dlMenu{
+    position:absolute;
+    left:0;
+    top:calc(100% + 8px);
+    display:none;
+    min-width:190px;
+    background:rgba(255,255,255,0.96);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:14px;
+    box-shadow:0 10px 26px rgba(0,0,0,.14);
+    padding:8px;
+    z-index:999;
+  }
+  .dlWrap.open .dlMenu{ display:block; }
+  .dlItem{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid transparent;
+    color:#143c6b;
+    font-weight:900;
+    font-size:12px;
+    text-decoration:none;
+    background:transparent;
+    cursor:pointer;
+  }
+  .dlItem:hover{ background:#fff; border-color:rgba(0,0,0,.10); }
+  .dlRightHint{ opacity:.65; font-weight:900; }
+  .dlDivider{ height:1px; background:rgba(0,0,0,.08); margin:6px 2px; }
+  .dlSub{
+    position:absolute;
+    left:calc(100% + 8px);
+    top:0;
+    display:none;
+    min-width:220px;
+    max-height:340px;
+    overflow:auto;
+    background:rgba(255,255,255,0.96);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:14px;
+    box-shadow:0 10px 26px rgba(0,0,0,.14);
+    padding:8px;
+  }
+  .dlWrap.open .dlSub.open{ display:block; }
+  .dlSubTitle{
+    font-size:12px;
+    font-weight:1000;
+    color:#143c6b;
+    padding:6px 8px 8px 8px;
+  }
+
+  /* Dates card */
+  .dates{
+    width:min(560px, 90%);
+    text-align:center;
+    color:#0a2a48;
+    background:rgba(255,255,255,0.78);
+    border:1px solid rgba(10,42,72,0.08);
+    border-radius:12px;
+    padding:10px 14px;
+    backdrop-filter:saturate(1.05) blur(1px);
+  }
+  .dates h4{margin:0 0 6px 0; font-size:14px; letter-spacing:.02em; color:#143c6b}
+  .dates ul{margin:0; padding:0; list-style:none; font-weight:900; font-size:14px}
+  .dates li{padding:4px 0}
+  .dates.isHidden{ display:none; }
+
+  /* Photos panel replaces dates */
+  .photosPanel{
+    width:min(760px, 92%);
+    display:none;
+    background:rgba(255,255,255,0.92);
+    border:1px solid rgba(10,42,72,0.10);
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+  }
+  .photosPanel.isOpen{ display:block; }
+  .photosTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .photosTop h4{ margin:0; color:#143c6b; font-size:14px; }
+  .photosClose{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+  .albumRows{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .albumList{display:flex;gap:8px;flex-wrap:wrap}
+  .albumBtn{
+    border:1px solid rgba(0,0,0,.12);
+    background:#fff;
+    border-radius:999px;
+    padding:7px 10px;
+    cursor:pointer;
+    font-weight:1000;
+    font-size:12px;
+    color:#143c6b;
+  }
+  .albumBtn.active{ background:#eef6ff; border-color:rgba(20,60,107,.18); }
+  .photosHint{margin-top:8px;font-size:12px;color:#4d6f9a;font-weight:900}
+
+  /* Elevation overlay (replaces dates while open) */
+  .elevOverlay{
+    width:min(760px, 92%);
+    display:none;
+    background:rgba(255,255,255,0.92);
+    border:1px solid rgba(10,42,72,0.10);
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+  }
+  .elevOverlay.isOpen{ display:block; }
+  .elevTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .elevTop h4{ margin:0; color:#143c6b; font-size:14px; }
+  .elevClose{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+  .miniStats{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#365b89;font-weight:900}
+  .miniStats b{color:#0a1a32}
+  .elevWrap{position:relative;margin-top:8px}
+  canvas#elevCanvas{
+    width:100%;
+    height:160px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(195,234,253,.7), rgba(255,255,255,.85));
+    border:1px solid rgba(0,0,0,.08);
+  }
+  .elevTip{
+    position:absolute; left:0; top:0; transform:translate(-50%,-110%);
+    display:none;
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:10px;
+    padding:6px 8px;
+    box-shadow:0 10px 26px rgba(0,0,0,.14);
+    font-size:12px; color:#365b89; pointer-events:none;
+    white-space:nowrap;
+    font-weight:900;
+  }
+  .elevTip b{color:#0a1a32}
+  .elevHint{margin-top:6px;font-size:12px;color:#4d6f9a;font-weight:900}
+
+  /* Leg elevation in modal */
+  .elevBlock{
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:12px;
+    padding:12px;
+    background:#f7fbff;
+  }
+  .legElevWrap{
+    position:relative;
+  }
+  #m-elev-canvas{
+    width:100%;
+    height:140px;
+    border-radius:10px;
+    background:linear-gradient(180deg, rgba(195,234,253,.5), rgba(255,255,255,.85));
+    border:1px solid rgba(0,0,0,.08);
+    cursor:crosshair;
+  }
+  .legElevStats{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-top:8px;
+    font-size:12px;
+    color:#365b89;
+    font-weight:900;
+  }
+  .legElevStats b{color:#0a1a32}
+
+  /* Map */
+  svg{width:100%;height:100%;display:block;background:transparent}
+  .tw-bg{opacity:.35; pointer-events:none}
+  .route-casing{ fill:none;stroke:#ffffff;stroke-width:8;opacity:.98; vector-effect:non-scaling-stroke; }
+  .route{
+    fill:none;stroke:var(--ok);stroke-width:4;
+    stroke-linecap:round;stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Heat segments layer (shown in elevation mode) */
+  .heatSeg{
+    fill:none;
+    stroke-width:4.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Highlighted leg */
+  .leg-casing{ fill:none;stroke:#ffffff;stroke-width:10;opacity:.95; vector-effect:non-scaling-stroke; }
+  .leg{
+    fill:none;stroke:#143c6b;stroke-width:6;
+    stroke-linecap:round;stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+    filter:url(#glow);
+  }
+
+  /* Stops */
+  .node{cursor:pointer;vector-effect:non-scaling-stroke}
+  .node .hit{fill:transparent}
+  .node .ring{fill:#fff;opacity:.98}
+  .node .core{fill:var(--ok);filter:drop-shadow(0 0 8px rgba(15,191,136,.6))}
+  .node.start .core{fill:#143c6b;filter:drop-shadow(0 0 10px rgba(20,60,107,.45))}
+  .node.finish .core{fill:#0a1a32;filter:drop-shadow(0 0 10px rgba(10,26,50,.35))}
+  .label{font-size:11px;fill:#133a66;user-select:none;pointer-events:none;font-weight:1000}
+  .cityItalic{ font-style: italic; }
+
+  /* Lighthouses */
+  .lh .ring{fill:#fff;opacity:.98;stroke:var(--lh);stroke-width:2}
+  .lh .core{fill:var(--lh);filter:drop-shadow(0 0 8px rgba(255,122,89,.65))}
+  .lh-label{font-size:11px;fill:#8a3a27;font-weight:1000;user-select:none;pointer-events:none}
+
+  /* Rail markers */
+  .rail .ring{fill:#fff;opacity:.98;stroke:var(--rail);stroke-width:2}
+  .rail .core{fill:var(--rail);filter:drop-shadow(0 0 8px rgba(122,92,255,.55))}
+  .rail-label{font-size:11px;fill:#3e2aa8;font-weight:1000;user-select:none;pointer-events:none}
+
+  /* Hover popover */
+  .popover{
+    position:absolute; transform:translate(-50%,-100%); pointer-events:none;
+    min-width:220px; max-width:360px; z-index:30; display:none;
+    background:rgba(255,255,255,.96); border:1px solid rgba(0,0,0,.1);
+    border-radius:10px; padding:8px 10px; box-shadow:0 8px 22px rgba(0,0,0,.15)
+  }
+  .popover h4{margin:0 0 4px 0;font-size:13px;color:#143c6b}
+  .popover .row{display:flex;justify-content:space-between;gap:8px;color:#365b89;font-size:12px;font-weight:900}
+  .popover .row b{color:#0a1a32}
+
+  /* Modal: Day Leg Details */
+  .modalHold{position:fixed;inset:0;display:none;place-items:center;z-index:90;background:rgba(20,40,80,.25);backdrop-filter:blur(2px)}
+  .modal{
+    width:min(920px,92vw);max-height:88vh;overflow:auto;border-radius:16px;padding:14px;background:#fff;
+    border:1px solid rgba(0,0,0,.08);box-shadow:0 22px 60px rgba(0,0,0,.25)
+  }
+  .modal header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .modal h3{margin:0;font-size:18px;color:#143c6b}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kv{border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:10px;background:#f7fbff}
+  .k{font-size:12px;color:#486ea3;font-weight:900}.v{font-size:18px;font-weight:1000;color:#0a1a32}
+  .todo,.cue{border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:10px}
+  .todo h4,.cue h4{margin:0 0 8px 0;color:#143c6b}
+  .todo ul{margin:0;padding-left:18px}
+  .cue .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#365b89;padding:4px 0;border-bottom:1px dashed rgba(0,0,0,.08);font-weight:900}
+  .cue .row:last-child{border-bottom:0}
+  .cue b{color:#0a1a32}
+
+  .mapBlock{margin-top:10px}
+  .mapBlock header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .mapBlock a{margin-left:auto;font-size:12px;text-decoration:underline;font-weight:1000}
+  .mapFrame{
+    width:100%; aspect-ratio:16/9; border:0; border-radius:12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08)
+  }
+  .btn{
+    border:1px solid rgba(0,0,0,.14);
+    background:#fff;
+    border-radius:12px;
+    padding:8px 10px;
+    cursor:pointer;
+    font-weight:1000;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 820px){
+    html,body{height:auto}
+    body{overflow:auto}
+    .main{ position:static; display:block; padding-top:var(--safe-top); padding-bottom:var(--safe-bottom); }
+    .left{ height: min(72svh, 78vh); }
+    .left > svg{height:100%; width:100%}
+    .right{ display:block; padding:16px 16px 24px 16px; background:var(--bg); }
+    .logoWrap{ width:min(68vw, 320px); height:auto; margin: 0 auto 12px auto; }
+    .right img#tripImage{ width:100%; height:auto; }
+    .thumbGrid{ grid-template-columns:1fr; }
+    .photoNav{ width:32px; height:32px; font-size:16px; }
+    .photoNav.prev{ left:4px; }
+    .photoNav.next{ right:4px; }
+    .dates{ width:100%; margin:0 auto; border-radius:14px; padding:12px 14px; background:rgba(255,255,255,0.92); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .dates h4{font-size:16px}
+    .dates ul{font-size:15px}
+    .dates li{padding:6px 0}
+    .elevOverlay{width:100%;}
+    canvas#elevCanvas{height:180px;}
+    .label{font-size:13px}
+    .lh-label{display:none}
+    .rail-label{display:none}
+    .popover{min-width:180px; max-width:260px; padding:8px}
+    .node .hit{r:24}
+    .node .ring{r:11}
+    .node .core{r:5}
+    .controls{left:10px; top:10px}
+    .controls a, .controls button{padding:8px 10px; font-size:12px}
+    .dlSub{ left:0; top:calc(100% + 8px); } /* nested submenu drops below on mobile */
+    .statusPill{max-width:92vw}
+  }
+</style>
+</head>
+
+<body>
+
+<div class="main">
+  <div class="left">
+
+    <div class="controls" aria-label="Controls">
+      <button id="btnElev" type="button" aria-pressed="false">海拔 Elevation</button>
+      <button id="btnRail" type="button" aria-pressed="false">火車 Rail</button>
+      <button id="btnRoute" type="button">路線 Route</button>
+      <button id="btnPhotos" type="button" aria-pressed="false">照片 Photos</button>
+
+      <!-- Download dropdown -->
+      <div class="dlWrap" id="dlWrap">
+        <button id="btnDl" type="button" aria-expanded="false">下載 ▾</button>
+
+        <div class="dlMenu" id="dlMenu" role="menu" aria-label="Download menu">
+          <a class="dlItem" id="dlFullGpx" href="#" download>
+            GPX <span class="dlRightHint">滿的</span>
+          </a>
+          <a class="dlItem" id="dlFullKml" href="#" download>
+            KML <span class="dlRightHint">滿的</span>
+          </a>
+
+          <div class="dlDivider"></div>
+
+          <button class="dlItem" id="dlDayGpxBtn" type="button">
+            GPX (天) <span class="dlRightHint">▶</span>
+          </button>
+
+          <div class="dlSub" id="dlDaySub" aria-label="GPX day list">
+            <div class="dlSubTitle">GPX 每天</div>
+            <div id="dlDayLinks"></div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btnTracking" type="button">追蹤 Tracking</button>
+      <a id="btnGh"  href="#" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <svg id="svg" viewBox="0 0 1016 1221" aria-label="Taiwan route map">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Safari is picky: set both href + xlink:href -->
+      <image class="tw-bg"
+             href="https://upload.wikimedia.org/wikipedia/commons/7/72/Taiwan_location_map.svg"
+             xlink:href="https://upload.wikimedia.org/wikipedia/commons/7/72/Taiwan_location_map.svg"
+             x="0" y="0" width="1016" height="1221" preserveAspectRatio="none"/>
+
+      <g id="layers">
+        <path id="routeCasing" class="route-casing" d=""></path>
+        <path id="routePath"   class="route"        d=""></path>
+
+        <!-- heatmap route layer -->
+        <g id="heatLayer" opacity="0"></g>
+
+        <path id="legCasing" class="leg-casing" d="" opacity="0"></path>
+        <path id="legPath"   class="leg"        d="" opacity="0"></path>
+
+        <g id="nodes"></g>
+        <g id="labels"></g>
+        <g id="lighthouses"></g>
+        <g id="lhLabels"></g>
+
+        <g id="railStations" opacity="0"></g>
+        <g id="railLabels" opacity="0"></g>
+
+        <g id="currentPosition"></g>
+        <g id="photoMarkers"></g>
+        <g id="photoMarkerLines"></g>
+
+        <circle id="debugDot" cx="0" cy="0" r="6" fill="#ff2a6d" opacity="0"></circle>
+      </g>
+    </svg>
+
+    <div id="popover" class="popover" role="tooltip" aria-hidden="true">
+      <h4 id="p-title">—</h4>
+      <div class="row"><span>Date</span><b id="p-date">—</b></div>
+      <div class="row"><span>Leg</span><b id="p-leg-name">—</b></div>
+      <div class="row"><span>Leg distance</span><b id="p-leg-mi">—</b></div>
+      <div class="row"><span>Leg gain</span><b id="p-leg-gain">—</b></div>
+      <div class="row"><span>End city</span><b id="p-city">—</b></div>
+      <div class="row"><span>Lighthouses</span><b id="p-lights">—</b></div>
+    </div>
+  </div>
+
+  <aside class="right">
+    <div class="logoWrap" id="logoWrap" aria-label="Trip graphic / photos">
+      <img id="tripImage" src="image.png" alt="Huandao image"/>
+      <button class="photoNav prev" id="photoPrev" type="button" aria-label="Previous photo">‹</button>
+      <button class="photoNav next" id="photoNext" type="button" aria-label="Next photo">›</button>
+      <div id="thumbOverlay" class="thumbOverlay" aria-label="Album thumbnails">
+        <div class="thumbTop">
+          <h4 id="thumbTitle">Photos</h4>
+          <button id="thumbClose" class="thumbClose" type="button">Close</button>
+        </div>
+        <div id="thumbGrid" class="thumbGrid"></div>
+      </div>
+    </div>
+
+    <!-- Dates list: special days only -->
+    <div id="datesCard" class="dates" aria-label="Trip dates">
+      <h4>環島行程 — 2026</h4>
+      <ul>
+        <li>02/04/26 <em>Tokyo, Japan</em> — Autechre</li>
+        <li>02/06/26 <em>Taichung, Taiwan</em> — 開始環島🏁</li>
+        <li>02/07/26 <em>Guosheng (West)</em> 燈塔</li>
+        <li>02/08/26 <em>Eluanbi (South)</em> 燈塔</li>
+        <li>02/14/26 <em>Sandiaojiao (East)</em> 燈塔</li>
+        <li>02/15/26 <em>Fugui (North)</em> 燈塔</li>
+        <li>02/16/26 <em>Taichung, Taiwan</em> — 結束環島🏁 / 團年飯🧧</li>
+      </ul>
+      <div style="margin-top:8px;font-size:12px;color:#365b89;font-weight:900">
+        Click a stop marker to open details.
+      </div>
+    </div>
+
+    <!-- Photos panel replaces dates when open -->
+    <section id="photosPanel" class="photosPanel" aria-label="Photos">
+      <div class="photosTop">
+        <h4>Photos</h4>
+        <button id="btnPhotosClose" class="photosClose" type="button">Close</button>
+      </div>
+
+      <div class="albumRows">
+        <div class="albumList" id="albumListRow1"></div>
+        <div class="albumList" id="albumListRow2"></div>
+      </div>
+
+      <div class="photosHint" id="photosHint">
+        Choose an album to load thumbnails (replaces the logo panel).
+      </div>
+    </section>
+
+    <!-- Elevation overlay replaces dates while open -->
+    <section id="elevOverlay" class="elevOverlay" aria-label="Elevation profile">
+      <div class="elevTop">
+        <h4>Elevation Profile</h4>
+        <button id="btnElevClose" class="elevClose" type="button">Close</button>
+      </div>
+
+      <div class="miniStats" style="margin-top:6px">
+        <span>Total <b id="st-total-mi">—</b></span>
+        <span>Gain <b id="st-gain-ft">—</b></span>
+        <span>Max elev <b id="st-max-ft">—</b></span>
+        <span>Max grade <b id="st-max-grade">—</b></span>
+        <span>Split <b id="st-split-note">effort-weighted</b></span>
+      </div>
+
+      <div class="elevWrap">
+        <canvas id="elevCanvas"></canvas>
+        <div id="elevTip" class="elevTip"></div>
+      </div>
+
+      <div class="elevHint" id="elevHint">
+        Hover for mile/elevation/grade. Click to open the nearest day leg.
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- Modal: Day Leg Details -->
+<div id="modalHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <header>
+      <h3 id="m-title">Day</h3>
+      <button id="m-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div class="grid">
+      <div class="kv"><div class="k">Date</div><div id="m-date" class="v">—</div></div>
+      <div class="kv"><div class="k">Route</div><div id="m-route" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Leg distance</div><div id="m-leg-mi" class="v">—</div></div>
+      <div class="kv"><div class="k">Total distance (start → here)</div><div id="m-from-start" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Leg elev gain</div><div id="m-leg-gain" class="v">—</div></div>
+      <div class="kv"><div class="k">Total elev gain (start → here)</div><div id="m-elev-start" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Est. time (leg)</div><div id="m-time-leg" class="v">—</div></div>
+      <div class="kv"><div class="k">Miles to end</div><div id="m-to-end" class="v">—</div></div>
+
+      <div class="kv"><div class="k">Lighthouses on this day</div><div id="m-lights" class="v">—</div></div>
+      <div class="kv"><div class="k">Day endpoint</div><div id="m-endpoint" class="v">—</div></div>
+
+      <div class="todo" style="grid-column:1 / -1">
+        <h4>Notes / ideas</h4>
+        <ul id="m-todo"></ul>
+      </div>
+
+      <div class="cue" style="grid-column:1 / -1">
+        <h4>Nearby Cue Sheet Items</h4>
+        <div id="m-cues">Cue sheet not loaded yet.</div>
+      </div>
+
+      <!-- Elevation profile for this leg -->
+      <div class="elevBlock" style="grid-column:1 / -1">
+        <h4 style="margin:0 0 8px 0;color:#143c6b">Elevation Profile</h4>
+        <div class="legElevWrap">
+          <canvas id="m-elev-canvas"></canvas>
+          <div id="m-elev-tip" class="elevTip"></div>
+        </div>
+        <div class="legElevStats" id="m-elev-stats"></div>
+      </div>
+    </div>
+
+    <section class="mapBlock">
+      <header>
+        <h4 style="margin:0;color:#143c6b">Map (MyMaps)</h4>
+        <a id="m-map-link" href="#" target="_blank" rel="noopener">View on MyMaps (zoomed)</a>
+      </header>
+      <iframe id="m-map" class="mapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src=""></iframe>
+    </section>
+
+    <footer style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <button id="m-toggle-highlight" class="btn" type="button">Toggle highlight</button>
+      <button id="m-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Route overview -->
+<div id="routeHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rt-title">
+    <header>
+      <h3 id="rt-title">Route — 11 Day Plan</h3>
+      <button id="rt-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px 0">
+      <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef6ff;border:1px solid rgba(10,42,72,.10);color:#143c6b;font-weight:1000;font-size:12px">
+        Splits are effort-weighted (distance + climbing)
+      </span>
+      <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef6ff;border:1px solid rgba(10,42,72,.10);color:#143c6b;font-weight:1000;font-size:12px">
+        Click a row to open Day modal
+      </span>
+    </div>
+
+    <div style="overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:14px">
+      <table aria-label="Route day-by-day table" style="border-collapse:collapse;width:100%">
+        <thead>
+          <tr>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Day</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Date</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">From → To</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Leg</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Gain</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Est.</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Lights</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">End mi</th>
+          </tr>
+        </thead>
+        <tbody id="rt-body"></tbody>
+      </table>
+    </div>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="rt-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Lighthouse Photo + Map -->
+<div id="photoHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ph-title">
+    <header>
+      <h3 id="ph-title" style="margin:0;font-size:18px;color:#143c6b">Lighthouse</h3>
+      <button id="ph-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div class="thumb" id="ph-frame" aria-label="Empty photo placeholder" style="width:100%;aspect-ratio:16/10;border-radius:12px;border:2px dashed rgba(0,0,0,.14);display:grid;place-items:center;color:#6b7a90;font-weight:1000;background:repeating-linear-gradient(45deg, #f6f7f8 0 12px, #eef1f5 12px 24px);">
+      Photo will be uploaded when we reach this marker 📷
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#365b89;font-weight:900">
+      <div>Date: <b id="ph-date" style="color:#0a1a32">—</b></div>
+      <div>Day: <b id="ph-day" style="color:#0a1a32">—</b></div>
+      <div>Coordinates: <b id="ph-coords" style="color:#0a1a32">—</b></div>
+    </div>
+
+    <section class="mapBlock" style="margin-top:12px">
+      <header>
+        <h4 style="margin:0;color:#143c6b">Map (MyMaps)</h4>
+        <a id="ph-map-link" href="#" target="_blank" rel="noopener">View on MyMaps (zoomed)</a>
+      </header>
+      <iframe id="ph-map" class="mapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src=""></iframe>
+    </section>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="ph-close-bottom" class="btn">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Map Photo Viewer -->
+<div id="mapPhotoHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mph-title">
+    <header>
+      <h3 id="mph-title" style="margin:0;font-size:18px;color:#143c6b">Photo</h3>
+      <button id="mph-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div class="thumb" id="mph-frame" aria-label="Photo" style="width:100%;aspect-ratio:16/10;border-radius:12px;border:1px solid rgba(0,0,0,.10);overflow:hidden;background:#000;">
+      <img id="mph-image" src="" alt="Map photo" style="width:100%;height:100%;object-fit:contain;display:none;"/>
+      <div id="mph-placeholder" style="display:grid;place-items:center;height:100%;color:#6b7a90;font-weight:1000;">
+        Loading photo…
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#365b89;font-weight:900">
+      <div>Coordinates: <b id="mph-coords" style="color:#0a1a32">—</b></div>
+      <div>Date: <b id="mph-date" style="color:#0a1a32">—</b></div>
+    </div>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="mph-close-bottom" class="btn">Close</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal: Tracking -->
+<div id="trackingHold" class="modalHold" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tk-title">
+    <header>
+      <h3 id="tk-title" style="margin:0;font-size:18px;color:#143c6b">Tracking</h3>
+      <button id="tk-close" class="btn" style="margin-left:auto">Close</button>
+    </header>
+
+    <div style="color:#365b89;font-weight:900;margin:6px 0 10px 0">
+      Loaded from <code style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace">current.csv</code>.
+      Hover a row to view 🚴 location on the map.
+    </div>
+
+    <div style="overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:14px">
+      <table aria-label="Tracking table" style="border-collapse:collapse;width:100%">
+        <thead>
+          <tr>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">#</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Time</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Lat</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Lon</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Mi</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Gain ft</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Alt m</th>
+            <th style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#143c6b;letter-spacing:.02em;text-align:left">Avg mph</th>
+          </tr>
+        </thead>
+        <tbody id="tk-body"></tbody>
+      </table>
+    </div>
+
+    <footer style="margin-top:12px;display:flex;justify-content:flex-end;">
+      <button id="tk-close-bottom" class="btn" type="button">Close</button>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.js"></script>
+<script>
+/* ======================= ROUTE SOURCES ======================== */
+const ROUTE_GPX_URLS = [
+  // Local files first (for development)
+  '/routes/HuandaoFred/Hudandao_lighthouse_finalall.gpx',
+  '/routes/HuandaoFred/Hudandao_lighthouse_final.gpx',
+  // Remote fallbacks
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Hudandao_lighthouse_finalall.gpx',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Huandao_lighthouse_finalall.gpx',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Hudandao_lighthouse_final.gpx',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Huandao_lighthouse_final.gpx',
+];
+
+const ROUTE_KML_URLS = [
+  // Local files first
+  '/routes/HuandaoFred/Hudandao_lighthouse_final.kml',
+  // Remote fallbacks
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Hudandao_lighthouse_final.kml',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/Huandao_lighthouse_final.kml',
+];
+
+const ROUTE_GPX_URL = ROUTE_GPX_URLS[0];
+const ROUTE_KML_URL = ROUTE_KML_URLS[0];
+
+/* Cue sheet: try local first, then remote */
+const CUESHEET_URLS  = [
+  '/routes/HuandaoFred/cuesheet.csv',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/cuesheet.csv',
+  'https://huandao.lospalmos.org/routes/HuandaoFred/cutesheet.csv',
+];
+
+const GITHUB_URL = 'https://github.com/djdeiter/huandao';
+
+/* ======================= Photos folders ======================== */
+// Photo folders - organized in two rows
+const PHOTO_FOLDERS_ROW1 = [
+  { key:'training',   title:'Training',     base:'https://huandao.lospalmos.org/photos/training/' },
+  { key:'gear',       title:'Gear',         base:'https://huandao.lospalmos.org/photos/gear/' },
+  { key:'prep',       title:'Prep',         base:'https://huandao.lospalmos.org/photos/preride/' },
+  { key:'lighthouses',title:'Lighthouses',  base:'https://huandao.lospalmos.org/photos/lighthouses/' },
+];
+
+const PHOTO_FOLDERS_ROW2 = [
+  { key:'day1',  title:'Day 1',  base:'https://huandao.lospalmos.org/photos/day1/' },
+  { key:'day2',  title:'Day 2',  base:'https://huandao.lospalmos.org/photos/day2/' },
+  { key:'day3',  title:'Day 3',  base:'https://huandao.lospalmos.org/photos/day3/' },
+  { key:'day4',  title:'Day 4',  base:'https://huandao.lospalmos.org/photos/day4/' },
+  { key:'day5',  title:'Day 5',  base:'https://huandao.lospalmos.org/photos/day5/' },
+  { key:'day6',  title:'Day 6',  base:'https://huandao.lospalmos.org/photos/day6/' },
+  { key:'day7',  title:'Day 7',  base:'https://huandao.lospalmos.org/photos/day7/' },
+  { key:'day8',  title:'Day 8',  base:'https://huandao.lospalmos.org/photos/day8/' },
+  { key:'day9',  title:'Day 9',  base:'https://huandao.lospalmos.org/photos/day9/' },
+  { key:'day10', title:'Day 10', base:'https://huandao.lospalmos.org/photos/day10/' },
+  { key:'day11', title:'Day 11', base:'https://huandao.lospalmos.org/photos/day11/' },
+];
+
+// Combined for backwards compatibility
+const PHOTO_FOLDERS = [...PHOTO_FOLDERS_ROW1, ...PHOTO_FOLDERS_ROW2];
+
+/* ======================= SYNC WITH GOOGLE MYMAPS ================= */
+// const MYMAPS_MID = '1e5xrpzrgsXJfPaXwErqOqQzKby-yhqM';
+const MYMAPS_MID = '18y2pE0gYk0BLe7mu_YdK4lUFIVh1l7Q';
+const MYMAPS_KML  = `https://www.google.com/maps/d/kml?mid=${encodeURIComponent(MYMAPS_MID)}&forcekml=1`;
+const MYMAPS_EMBED_BASE = `https://www.google.com/maps/d/embed?mid=${encodeURIComponent(MYMAPS_MID)}`;
+const MYMAPS_EDIT_BASE  = `https://www.google.com/maps/d/edit?mid=${encodeURIComponent(MYMAPS_MID)}`;
+
+function buildEmbedSrc(lat, lng, zoom=10){
+  const ll = `${lat},${lng}`;
+  return `${MYMAPS_EMBED_BASE}&ll=${encodeURIComponent(ll)}&z=${encodeURIComponent(String(zoom))}`;
+}
+function buildEditUrl(lat, lng, zoom=10){
+  const ll = `${lat},${lng}`;
+  return `${MYMAPS_EDIT_BASE}&ll=${encodeURIComponent(ll)}&z=${encodeURIComponent(String(zoom))}`;
+}
+
+/* ======================= Status UI ============================ */
+const statusDot = document.querySelector('#statusDot');
+const statusText = document.querySelector('#statusText');
+function setStatus(msg, level='info'){
+  // Status pill removed from UI - this function is now a no-op
+  if(!statusText || !statusDot) return;
+  statusText.textContent = msg;
+  statusText.title = msg;
+  const colors = { info:'#bbb', ok:'#0fbf88', warn:'#ffb020', err:'#ff4d4d' };
+  statusDot.style.background = colors[level] || colors.info;
+}
+
+/* ======================= Dates ========================= */
+const PARTS = 11;
+const RIDE_DAYS = Array.from({length:PARTS},(_,i)=>{
+  const day=i+1;
+  const date = new Date(Date.UTC(2026,1,6 + i)); // Feb = 1
+  return {day, date: date.toISOString().slice(0,10)};
+});
+const SPECIAL_DAYS = { 0: '2026-02-05' };
+function dayDate(dayNum){
+  if(dayNum === 0) return SPECIAL_DAYS[0];
+  return RIDE_DAYS.find(d=>d.day===dayNum)?.date ?? '—';
+}
+
+/* ======================= Lighthouses / markers ========================= */
+const LIGHTHOUSES = [
+  {name:'開始環島🥟 / 🏁結束島嶼之旅',                 lat:24.1860, lng:120.7260, day:0},
+  {name:'Guosheng (West) 燈塔',              lat:23.1280, lng:120.0330, day:2},
+  {name:'Eluanbi (South) 燈塔',              lat:21.9022, lng:120.8526, day:3},
+  {name:'Sandiaojiao (East) 燈塔',           lat:25.0076, lng:121.9426, day:9},
+  {name:'Fugui (North) 燈塔',                lat:25.2976, lng:121.5382, day:10},
+];
+
+/* ======================= Rail stations (toggle overlay) ===================== */
+const RAIL_STATIONS = [
+  {name:'Taichung',  lat:24.1374, lng:120.6867},
+  {name:'Changhua',  lat:24.0817, lng:120.5383},
+  {name:'Yunlin (Douliu)', lat:23.7092, lng:120.5429},
+  {name:'Chiayi',    lat:23.4791, lng:120.4414},
+  {name:'Tainan',    lat:22.9971, lng:120.2120},
+  {name:'Kaohsiung', lat:22.6394, lng:120.3028},
+  {name:'Pingtung',  lat:22.6696, lng:120.4867},
+  {name:'Taitung',   lat:22.7936, lng:121.1235},
+  {name:'Yuli',      lat:23.3267, lng:121.3150},
+  {name:'Hualien',   lat:23.9929, lng:121.6015},
+  {name:'Suao',      lat:24.5943, lng:121.8528},
+  {name:'Yilan',     lat:24.7544, lng:121.7580},
+  {name:'Jiaoxi',    lat:24.8274, lng:121.7757},
+  {name:'Taipei',    lat:25.0478, lng:121.5170},
+  {name:'Taoyuan',   lat:24.9892, lng:121.3133},
+  {name:'Hsinchu',   lat:24.8013, lng:120.9713},
+  {name:'Miaoli',    lat:24.5648, lng:120.8228},
+];
+
+/* ===== Hardcoded major-city lookup (temporary, reliable) ===== */
+const MAJOR_CITIES = [
+  { name:'Taichung',  lat:24.1477, lng:120.6736 },
+  { name:'Taipei',    lat:25.0330, lng:121.5654 },
+  { name:'New Taipei',lat:25.0169, lng:121.4628 },
+  { name:'Taoyuan',   lat:24.9937, lng:121.3010 },
+  { name:'Hsinchu',   lat:24.8138, lng:120.9675 },
+  { name:'Miaoli',    lat:24.5602, lng:120.8214 },
+  { name:'Changhua',  lat:24.0806, lng:120.5420 },
+  { name:'Nantou',    lat:23.9157, lng:120.6639 },
+  { name:'Douliu (Yunlin)', lat:23.7092, lng:120.5429 },
+  { name:'Chiayi',    lat:23.4801, lng:120.4491 },
+  { name:'Tainan',    lat:22.9999, lng:120.2270 },
+  { name:'Kaohsiung', lat:22.6273, lng:120.3014 },
+  { name:'Pingtung',  lat:22.6696, lng:120.4867 },
+  { name:'Taitung',   lat:22.7550, lng:121.1500 },
+  { name:'Hualien',   lat:23.9872, lng:121.6016 },
+  { name:'Yilan',     lat:24.7570, lng:121.7530 },
+  { name:'Keelung',   lat:25.1276, lng:121.7392 },
+];
+
+// ===== Hardcoded stop coordinates and city names (index = day) =====
+// 0 = start, 11 = finish
+// These are the exact hotel/endpoint coordinates for each day
+const HARD_STOPS = [
+  { name: 'Taichung',   lat: 24.18504241470793,  lng: 120.61728677885252 },  // 0 Start
+  { name: 'Dongshi',    lat: 23.438983499896903, lng: 120.155813800058 },    // 1
+  { name: 'Kaohsiung',  lat: 22.802657616006478, lng: 120.29073374264534 },  // 2
+  { name: 'Checheng',   lat: 22.046692495334625, lng: 120.70287336342768 },  // 3
+  { name: 'Dawu',       lat: 22.295318537224436, lng: 120.88918120016257 },  // 4
+  { name: 'Taitung',    lat: 22.758891909908733, lng: 121.14064836627182 },  // 5
+  { name: 'Ruisui',     lat: 23.497854217878647, lng: 121.36636590162938 },  // 6
+  { name: 'Xiulin',     lat: 24.114667817418272, lng: 121.63149512222125 },  // 7
+  { name: 'Zhuangwei',  lat: 24.764206292410172, lng: 121.81518998536428 },  // 8
+  { name: 'Wanli',      lat: 25.216916057034574, lng: 121.64352029340758 },  // 9
+  { name: 'Hsinchu',    lat: 24.843096677395717, lng: 120.92936993637088 },  // 10
+  { name: 'Taichung',   lat: 24.18504241470793,  lng: 120.61728677885252 },  // 11 Finish
+];
+
+// Backwards compatibility: array of just city names
+const HARD_STOP_CITY = HARD_STOPS.map(s => s.name);
+
+// ===== Hard-coded leg data (miles and elevation gain) =====
+// Index = day number (1-11). These override calculated values.
+const HARD_LEG_DATA = {
+  1:  { miles: 75.0,  gainFt: 923 },
+  2:  { miles: 72.8,  gainFt: 776 },
+  3:  { miles: 71.5,  gainFt: 599 },
+  4:  { miles: 67.9,  gainFt: 3613 },
+  5:  { miles: 44.0,  gainFt: 1653 },
+  6:  { miles: 67.1,  gainFt: 2702 },
+  7:  { miles: 52.0,  gainFt: 1289 },
+  8:  { miles: 68.1,  gainFt: 7221 },
+  9:  { miles: 67.7,  gainFt: 3014 },
+  10: { miles: 70.0,  gainFt: 2165 },
+  11: { miles: 61.3,  gainFt: 2508 },
+};
+
+/* ======================= Map projection ==================================== */
+const BOUNDS={top:26.4,bottom:21.7,left:118.0,right:122.3};
+const PX={w:1016,h:1221};
+function project(lat,lng){
+  const x=((lng-BOUNDS.left)/(BOUNDS.right-BOUNDS.left))*PX.w;
+  const y=((BOUNDS.top-lat)/(BOUNDS.top-BOUNDS.bottom))*PX.h;
+  return {x,y};
+}
+
+/* ======================= Distance helpers ================================== */
+const toRad=d=>d*Math.PI/180;
+function hav(a,b){
+  const R=6371008.8;
+  const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+  const s=Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function cumulative(P){
+  const d=[0]; let s=0;
+  for(let i=1;i<P.length;i++){ s+=hav(P[i-1],P[i]); d.push(s); }
+  return d;
+}
+const m2mi=m=>m/1609.344;
+const ftPerM=3.280839895;
+const fmtHrs=h=>{
+  const H=Math.floor(h), M=Math.round((h-H)*60);
+  return `${H}h ${String(M).padStart(2,'0')}m`;
+};
+
+function nearestMajorCity(lat, lng){
+  const here = {lat, lng};
+  let best=null, bestM=Infinity;
+  for(const c of MAJOR_CITIES){
+    const d = hav(here, c);
+    if(d < bestM){ bestM = d; best = c; }
+  }
+  return best ? { name: best.name, km: bestM/1000 } : { name:'', km:Infinity };
+}
+
+/* ======================= DOM refs ========================================== */
+const $=s=>document.querySelector(s);
+
+const svg=$('#svg'),
+      routeCasing=$('#routeCasing'),
+      routePath=$('#routePath'),
+      heatLayer=$('#heatLayer'),
+      legCasing=$('#legCasing'),
+      legPath=$('#legPath'),
+      nodes=$('#nodes'), labels=$('#labels'),
+      lhLayer=$('#lighthouses'), lhLabels=$('#lhLabels'),
+      railLayer=$('#railStations'), railLabels=$('#railLabels'),
+      currentPosLayer=$('#currentPosition'),
+      photoMarkersLayer=$('#photoMarkers'),
+      photoMarkerLinesLayer=$('#photoMarkerLines'),
+      pop=$('#popover'), debugDot=$('#debugDot');
+
+const modalHold=$('#modalHold');
+const routeHold=$('#routeHold');
+const photoHold=$('#photoHold');
+const mapPhotoHold=$('#mapPhotoHold');
+const trackingHold=$('#trackingHold');
+
+const dayMapIframe = $('#m-map');
+const dayMapLink   = $('#m-map-link');
+const lhMapIframe  = $('#ph-map');
+const lhMapLink    = $('#ph-map-link');
+
+const elevOverlay = $('#elevOverlay');
+const photosPanel = $('#photosPanel');
+const datesCard   = $('#datesCard');
+
+const elevCanvas  = $('#elevCanvas');
+const elevTip     = $('#elevTip');
+
+const stTotalMi   = $('#st-total-mi');
+const stGainFt    = $('#st-gain-ft');
+const stMaxFt     = $('#st-max-ft');
+const stMaxGrade  = $('#st-max-grade');
+const stSplitNote = $('#st-split-note');
+
+/* Controls */
+const btnElev      = $('#btnElev');
+const btnElevClose = $('#btnElevClose');
+const btnRail      = $('#btnRail');
+const btnRoute     = $('#btnRoute');
+const btnPhotos    = $('#btnPhotos');
+const btnPhotosClose = $('#btnPhotosClose');
+const btnTracking  = $('#btnTracking');
+
+const btnGh        = $('#btnGh');
+
+/* Download menu refs */
+const dlWrap = $('#dlWrap');
+const btnDl = $('#btnDl');
+const dlFullGpx = $('#dlFullGpx');
+const dlFullKml = $('#dlFullKml');
+const dlDayGpxBtn = $('#dlDayGpxBtn');
+const dlDaySub = $('#dlDaySub');
+const dlDayLinks = $('#dlDayLinks');
+
+/* Day modal refs */
+const mTitle = $('#m-title');
+const mDate  = $('#m-date');
+const mRoute = $('#m-route');
+const mLegMi = $('#m-leg-mi');
+const mFromStart = $('#m-from-start');
+const mLegGain = $('#m-leg-gain');
+const mElevStart = $('#m-elev-start');
+const mTimeLeg = $('#m-time-leg');
+const mToEnd = $('#m-to-end');
+const mLights = $('#m-lights');
+const mTodo = $('#m-todo');
+const mCues = $('#m-cues');
+const mEndpoint = $('#m-endpoint');
+const mToggleHighlight = $('#m-toggle-highlight');
+const mElevCanvas = $('#m-elev-canvas');
+const mElevTip = $('#m-elev-tip');
+const mElevStats = $('#m-elev-stats');
+
+const rtBody = $('#rt-body');
+const tkBody = $('#tk-body');
+
+/* Photos / thumbs */
+const albumListRow1 = $('#albumListRow1');
+const albumListRow2 = $('#albumListRow2');
+const photosHintEl = $('#photosHint');
+const thumbOverlay = $('#thumbOverlay');
+const thumbTitle = $('#thumbTitle');
+const thumbGrid = $('#thumbGrid');
+const thumbClose = $('#thumbClose');
+const tripImage = $('#tripImage');
+const logoWrap = $('#logoWrap');
+const photoPrev = $('#photoPrev');
+const photoNext = $('#photoNext');
+
+/* Wire link targets */
+btnGh.href  = GITHUB_URL;
+
+/* Full downloads: we set these after we successfully pick working URLs */
+dlFullGpx.href = ROUTE_GPX_URL;
+dlFullKml.href = ROUTE_KML_URL;
+dlFullGpx.setAttribute('download', 'HuandaoFred.gpx');
+dlFullKml.setAttribute('download', 'HuandaoFred.kml');
+
+/* ======================= State ============================================= */
+let RAW=[], RAW_CUM_M=[], RAW_GAIN_FT_CUM=[], RAW_EFF_CUM=[];
+let STOPS=[], STOP_CUM_M=[], STOP_RAW_INDEX=[];
+let STOP_NAMES=[];
+let STOP_END_CUE = Array(PARTS+1).fill(null);
+let STOP_CITY = Array(PARTS+1).fill('');
+let CITY_POINTS = [];
+
+let CUES=[];
+let ELEV_SRC=null;
+
+let isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+let highlightedDay = null;
+let railOn = false;
+let photoMode = false;
+
+/* Photo gallery state */
+let currentPhotoList = [];  // Array of photo URLs
+let currentPhotoIndex = -1; // Current photo index
+
+/* Day GPX blobs */
+let DAY_GPX_BLOBS = Array(PARTS+1).fill(null);
+
+/* ======================= Utility =========================================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function safeShortName(s, max=28){
+  s=(s||'').trim();
+  if(!s) return '';
+  if(s.length<=max) return s;
+  return s.slice(0,max-1).trim()+'…';
+}
+function isElevationMode(){ return elevOverlay.classList.contains('isOpen'); }
+
+/* ======================= CSV parsing ======================================= */
+function parseCSV(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(lines.length<2) return [];
+  const header=splitCSVLine(lines[0]).map(h=>h.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cells=splitCSVLine(lines[i]);
+    const obj={};
+    header.forEach((h,idx)=>obj[h]= (cells[idx] ?? '').trim());
+    rows.push(obj);
+  }
+  return rows;
+}
+function splitCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1]==='"'){ cur+='"'; i++; }
+      else inQ=!inQ;
+    }else if(ch===',' && !inQ){
+      out.push(cur); cur='';
+    }else{
+      cur+=ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+function parseMaybeNumber(x){
+  const v=Number(String(x).replace(/[^\d\.\-]/g,''));
+  return Number.isFinite(v)?v:null;
+}
+
+/* ======================= Cue helpers ======================================= */
+function cueMiles(row){ return parseMaybeNumber(row?.['Distance (miles) From Start']); }
+function cueText(row){
+  const a=(row?.['Description']||'').trim();
+  const b=(row?.['Notes']||'').trim();
+  const c=(row?.['Type']||'').trim();
+  return `${c} ${a} ${b}`.replace(/\s+/g,' ').trim();
+}
+function cueLooksLikeTurn(row){
+  const t=cueText(row).toLowerCase();
+  return /\b(left|right|turn|merge|onto|exit|keep|continue)\b/.test(t);
+}
+function cueLooksLikeLodging(row){
+  const t=cueText(row).toLowerCase();
+  const good = /(hotel|hostel|motel|inn|bnb|b&b|guesthouse|homestay|stay|resort|lodge)/.test(t) ||
+               /(station|tra|hsr|rail)/.test(t) ||
+               /(city|town|downtown)/.test(t);
+  const bad = cueLooksLikeTurn(row) || /(roundabout|traffic light|intersection)/.test(t);
+  return good && !bad;
+}
+function cueScoreForTarget(row, targetMi){
+  const mi = cueMiles(row);
+  if(mi==null) return Infinity;
+  const d = Math.abs(mi - targetMi);
+  let score = d;
+  if(cueLooksLikeLodging(row)) score -= 4.0;
+  if(/(station|tra|hsr|rail)/i.test(cueText(row))) score -= 2.0;
+  if(cueLooksLikeTurn(row)) score += 3.0;
+  return score;
+}
+function bestCueNear(targetMi, windowMi=14){
+  if(!CUES.length) return null;
+  let best=null, bestScore=Infinity;
+  for(const r of CUES){
+    const mi = cueMiles(r);
+    if(mi==null) continue;
+    if(Math.abs(mi-targetMi) > windowMi) continue;
+    const sc = cueScoreForTarget(r, targetMi);
+    if(sc < bestScore){
+      bestScore = sc;
+      best = {...r, _mi: mi, _score: sc};
+    }
+  }
+  return best;
+}
+function cuesNear(mile, windowMi=10){
+  if(!CUES.length) return [];
+  const out=[];
+  for(const r of CUES){
+    const m=cueMiles(r);
+    if(m==null) continue;
+    if(Math.abs(m-mile) <= windowMi) out.push({...r, _mi:m});
+  }
+  out.sort((a,b)=>a._mi-b._mi);
+  return out.slice(0,12);
+}
+function stopNameFromCue(row){
+  if(!row) return '';
+  const desc=(row['Description']||'').trim();
+  const notes=(row['Notes']||'').trim();
+  const t=(row['Type']||'').trim();
+  return (desc || notes || t || '').replace(/\s+/g,' ').trim();
+}
+
+/* ======================= GPX / KML parsers ================================= */
+/* ✅ FIX: namespace-safe GPX parsing (handles default GPX namespace cleanly) */
+function parseGPX(xmlText){
+  const xml = new DOMParser().parseFromString(xmlText,'application/xml');
+
+  // Detect parse errors (DOMParser puts <parsererror> in some browsers)
+  const perr = xml.getElementsByTagName('parsererror');
+  if(perr && perr.length){
+    throw new Error('GPX XML parse error (parsererror element present).');
+  }
+
+  const byLocal = (root, localName) => {
+    const all = root.getElementsByTagName('*');
+    const out = [];
+    for(const el of all){
+      if((el.localName || el.nodeName) === localName) out.push(el);
+    }
+    return out;
+  };
+
+  let pts = [];
+  const trkpts = byLocal(xml, 'trkpt');
+  for(const n of trkpts){
+    const lat = Number(n.getAttribute('lat'));
+    const lon = Number(n.getAttribute('lon'));
+    if(!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+    let ele;
+    const eleEl = byLocal(n, 'ele')[0];
+    if(eleEl){
+      const v = Number((eleEl.textContent||'').trim());
+      if(Number.isFinite(v)) ele = v;
+    }
+
+    pts.push({ lat, lng: lon, ele });
+  }
+
+  // fallback to rtept
+  if(!pts.length){
+    const rtepts = byLocal(xml, 'rtept');
+    for(const n of rtepts){
+      const lat = Number(n.getAttribute('lat'));
+      const lon = Number(n.getAttribute('lon'));
+      if(!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+      let ele;
+      const eleEl = byLocal(n, 'ele')[0];
+      if(eleEl){
+        const v = Number((eleEl.textContent||'').trim());
+        if(Number.isFinite(v)) ele = v;
+      }
+
+      pts.push({ lat, lng: lon, ele });
+    }
+  }
+
+  if(!pts.length) throw new Error('No <trkpt> or <rtept> found (namespace-safe parse).');
+  return pts;
+}
+
+/* KML: namespace-safe parsing for both LineString and Point Placemarks */
+function parseKMLWithPoints(xmlText){
+  const xml = new DOMParser().parseFromString(xmlText, 'application/xml');
+  const perr = xml.getElementsByTagName('parsererror');
+  if(perr && perr.length){
+    throw new Error('KML XML parse error (parsererror element present).');
+  }
+
+  const byLocal = (root, localName) => {
+    const all = root.getElementsByTagName('*');
+    const out = [];
+    for(const el of all){
+      if((el.localName || el.nodeName) === localName) out.push(el);
+    }
+    return out;
+  };
+
+  const linePts = [];
+  const lineStrings = byLocal(xml, 'LineString');
+  for(const ls of lineStrings){
+    const coordsEls = byLocal(ls, 'coordinates');
+    for(const node of coordsEls){
+      const raw = (node.textContent || '').trim();
+      if(!raw) continue;
+
+      const pts = raw.split(/\s+/).map(s=>{
+        const [lon, lat, alt] = s.split(',').map(Number);
+        return { lat, lng: lon, ele: Number.isFinite(alt) ? alt : undefined };
+      }).filter(p=>Number.isFinite(p.lat) && Number.isFinite(p.lng));
+
+      if(pts.length) linePts.push(...pts);
+    }
+  }
+
+  const pointPlacemarks = [];
+  const placemarks = byLocal(xml, 'Placemark');
+  for(const pm of placemarks){
+    const nameEl = byLocal(pm, 'name')[0];
+    const name = (nameEl?.textContent || '').trim();
+    if(!name) continue;
+
+    const ptEl = byLocal(pm, 'Point')[0];
+    if(!ptEl) continue;
+
+    const coordEl = byLocal(ptEl, 'coordinates')[0];
+    const txt = (coordEl?.textContent || '').trim();
+    if(!txt) continue;
+
+    const first = txt.split(/\s+/)[0];
+    const [lon, lat] = first.split(',').map(Number);
+    if(!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+    pointPlacemarks.push({name, lat, lng: lon});
+  }
+
+  return { linePts, pointPlacemarks };
+}
+
+/* ======================= SVG helper ======================================== */
+function svgEl(tag,attrs={},text){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  if(text!=null) el.textContent=text;
+  return el;
+}
+
+/* ======================= Core geometry helpers ============================= */
+function pathFrom(points){
+  if(!points.length) return '';
+  const xy=points.map(p=>project(p.lat,p.lng));
+  let d=`M ${xy[0].x} ${xy[0].y}`;
+  for(let i=1;i<xy.length;i++){
+    const a=xy[i-1],b=xy[i],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+    d+=` Q ${cx} ${cy} ${b.x} ${b.y}`;
+  }
+  return d;
+}
+function pathFromRawSlice(a,b){
+  const i0=Math.max(0, Math.min(RAW.length-1, Math.min(a,b)));
+  const i1=Math.max(0, Math.min(RAW.length-1, Math.max(a,b)));
+  return pathFrom(RAW.slice(i0, i1+1));
+}
+function fitRouteOnce(P){
+  if(!P?.length){ svg.setAttribute('viewBox',`0 0 ${PX.w} ${PX.h}`); return; }
+  let minLat=Infinity,maxLat=-Infinity,minLng=Infinity,maxLng=-Infinity;
+  for(const p of P){minLat=Math.min(minLat,p.lat);maxLat=Math.max(maxLat,p.lat);minLng=Math.min(minLng,p.lng);maxLng=Math.max(maxLng,p.lng);}
+  const pad=0.12;
+  let a=minLat-(maxLat-minLat)*pad, b=maxLat+(maxLat-minLat)*pad,
+      c=minLng-(maxLng-minLng)*pad, d=maxLng+(maxLng-minLng)*pad;
+  a=Math.max(a,BOUNDS.bottom); b=Math.min(b,BOUNDS.top);
+  c=Math.max(c,BOUNDS.left);   d=Math.min(d,BOUNDS.right);
+  const tl=project(b,c), br=project(a,d);
+  let x=Math.min(tl.x,br.x), y=Math.min(tl.y,br.y), w=Math.abs(br.x-tl.x), h=Math.abs(br.y-tl.y);
+  if(!(isFinite(w)&&isFinite(h)) || w<10 || h<10){ x=0; y=0; w=PX.w; h=PX.h; }
+  svg.setAttribute('viewBox',`${x} ${y} ${w} ${h}`);
+}
+
+/* ======================= Elevation gain between raw indices ================= */
+function elevGainBetweenRawIndices(a, b){
+  if(!RAW?.length) return 0;
+  let i0 = Math.max(0, Math.min(RAW.length - 1, Math.min(a, b)));
+  let i1 = Math.max(0, Math.min(RAW.length - 1, Math.max(a, b)));
+  let gainM = 0;
+  for(let i = i0 + 1; i <= i1; i++){
+    const prev = RAW[i-1]?.ele;
+    const cur  = RAW[i]?.ele;
+    if(prev == null || cur == null) continue;
+    const d = cur - prev;
+    if(d > 0) gainM += d;
+  }
+  return gainM;
+}
+
+/* ======================= Effort split (smart) ============================== */
+function buildEffortCurves(){
+  RAW_CUM_M = cumulative(RAW);
+
+  RAW_GAIN_FT_CUM = new Array(RAW.length).fill(0);
+  let gainFt = 0;
+  for(let i=1;i<RAW.length;i++){
+    const a=RAW[i-1].ele, b=RAW[i].ele;
+    if(a!=null && b!=null){
+      const d=(b-a)*ftPerM;
+      if(d>0) gainFt += d;
+    }
+    RAW_GAIN_FT_CUM[i] = gainFt;
+  }
+
+  const K = 6.0;
+
+  RAW_EFF_CUM = new Array(RAW.length).fill(0);
+  for(let i=0;i<RAW.length;i++){
+    const distMi = m2mi(RAW_CUM_M[i]);
+    const gFt = RAW_GAIN_FT_CUM[i];
+    RAW_EFF_CUM[i] = distMi + K*(gFt/1000);
+  }
+  return {K};
+}
+function lowerBound(arr, target){
+  let lo=0, hi=arr.length-1;
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+    if(arr[mid] < target) lo=mid+1;
+    else hi=mid;
+  }
+  return lo;
+}
+function interpAtCumulative(cumArr, i, target){
+  if(i<=0) return {idx:0, t:0};
+  const a=cumArr[i-1], b=cumArr[i];
+  const len=(b-a)||1;
+  const t=Math.max(0, Math.min(1, (target-a)/len));
+  return {idx:i-1, t};
+}
+function lerpPoint(a,b,t){
+  const lat=(1-t)*a.lat+t*b.lat;
+  const lng=(1-t)*a.lng+t*b.lng;
+  const ele=(a.ele!=null && b.ele!=null) ? (1-t)*a.ele+t*b.ele : undefined;
+  return {lat,lng,ele};
+}
+function nearestRawIndexByMiles(mi){
+  const targetM = mi * 1609.344;
+  const i = lowerBound(RAW_CUM_M, targetM);
+  const a=i, b=Math.max(0,i-1);
+  if(a<=0) return 0;
+  if(a>=RAW_CUM_M.length) return RAW_CUM_M.length-1;
+  return (Math.abs(RAW_CUM_M[a]-targetM) < Math.abs(RAW_CUM_M[b]-targetM)) ? a : b;
+}
+/**
+ * Find the closest point on the route to a given lat/lng
+ * Only searches forward from minIdx to ensure stops are in order
+ */
+function findClosestRawIndex(targetLat, targetLng, minIdx = 0){
+  if(!RAW?.length) return 0;
+  const target = {lat: targetLat, lng: targetLng};
+  let bestIdx = minIdx;
+  let bestDist = Infinity;
+  
+  for(let i = minIdx; i < RAW.length; i++){
+    const d = hav(target, RAW[i]);
+    if(d < bestDist){
+      bestDist = d;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+function buildStopsSmart(){
+  // Build cumulative distance/elevation curves
+  buildEffortCurves();
+  stSplitNote.textContent = `hotel-based (${HARD_STOPS.length} stops)`;
+
+  STOP_END_CUE = Array(PARTS+1).fill(null);
+
+  // Use HARD_STOPS coordinates to find closest points on route
+  const snapped = [];
+  let prevRawIdx = 0;
+  
+  for(let i = 0; i <= PARTS; i++){
+    const hs = HARD_STOPS[i];
+    if(!hs){
+      // Fallback if missing
+      const pt = RAW[prevRawIdx] || RAW[0];
+      snapped.push({rawIndex: prevRawIdx, distM: RAW_CUM_M[prevRawIdx] || 0, lat: pt.lat, lng: pt.lng, ele: pt.ele});
+      continue;
+    }
+    
+    let rawIdx;
+    
+    // Special cases for start and finish
+    if(i === 0){
+      rawIdx = 0; // Start is always first point
+    } else if(i === PARTS){
+      rawIdx = RAW.length - 1; // Finish is always last point
+    } else {
+      // Find closest point on route, searching only forward from previous stop
+      rawIdx = findClosestRawIndex(hs.lat, hs.lng, prevRawIdx + 1);
+    }
+    
+    prevRawIdx = rawIdx;
+    
+    const pt = RAW[rawIdx];
+    const distFromHotel = hav({lat: hs.lat, lng: hs.lng}, pt);
+    
+    snapped.push({
+      rawIndex: rawIdx,
+      distM: RAW_CUM_M[rawIdx] || 0,
+      lat: pt.lat,
+      lng: pt.lng,
+      ele: pt.ele
+    });
+    
+    console.log(`Stop ${i} (${hs.name}): rawIdx=${rawIdx}, mile=${m2mi(RAW_CUM_M[rawIdx] || 0).toFixed(1)}, dist from hotel=${(distFromHotel/1000).toFixed(2)}km`);
+  }
+
+  STOPS = snapped.map(s => ({lat:s.lat, lng:s.lng, ele:s.ele}));
+  STOP_RAW_INDEX = snapped.map(s => s.rawIndex);
+  STOP_CUM_M = snapped.map(s => s.distM);
+  
+  // Debug: verify stops are in order and show leg distances
+  console.log('=== Stop Summary ===');
+  for(let i = 1; i <= PARTS; i++){
+    const legMi = m2mi(STOP_CUM_M[i] - STOP_CUM_M[i-1]);
+    console.log(`Day ${i}: ${HARD_STOPS[i-1]?.name} → ${HARD_STOPS[i]?.name} = ${legMi.toFixed(1)} mi`);
+  }
+}
+
+/* ======================= City name assignment ============================== */
+function nearestCityName(lat, lng, maxKm=35){
+  if(!CITY_POINTS.length) return '';
+  const here={lat,lng};
+  let best=null, bd=Infinity;
+  for(const c of CITY_POINTS){
+    const d=hav(here, c);
+    if(d<bd){ bd=d; best=c; }
+  }
+  if(!best) return '';
+  const km=bd/1000;
+  if(km > maxKm) return '';
+  return best.name;
+}
+
+function buildStopCityNames(){
+  STOP_CITY = Array(PARTS+1).fill('');
+  for(let i=0;i<=PARTS;i++){
+    // Hard override always wins
+    STOP_CITY[i] = (HARD_STOP_CITY[i] || '').trim();
+  }
+}
+
+/* ======================= Stop naming (with city suffix) ==================== */
+function buildStopNames(){
+  STOP_NAMES = Array(PARTS+1).fill('');
+  STOP_NAMES[0] = `Start - ${STOP_CITY[0] || 'Taichung'}`;
+
+  // NOTE: user-visible labels on map are built in drawStops(); this keeps STOP_NAMES consistent.
+  for(let i=1;i<=PARTS;i++){
+    const endCity = STOP_CITY[i] || '';
+    STOP_NAMES[i] = `Day ${i} End - ${endCity || '—'}`;
+  }
+}
+
+/* ======================= Day leg metadata ================================== */
+function dayLegMiles(i){
+  // Use hard-coded value if available
+  if(HARD_LEG_DATA[i]?.miles != null) return HARD_LEG_DATA[i].miles;
+  // Otherwise calculate from route
+  const a=STOP_CUM_M[i-1]||0, b=STOP_CUM_M[i]||0;
+  return m2mi(Math.max(0,b-a));
+}
+function dayLegGainFt(i){
+  // Use hard-coded value if available
+  if(HARD_LEG_DATA[i]?.gainFt != null) return HARD_LEG_DATA[i].gainFt;
+  // Otherwise calculate from route
+  const a=STOP_RAW_INDEX[i-1]||0, b=STOP_RAW_INDEX[i]||0;
+  const gainM = elevGainBetweenRawIndices(a,b);
+  return gainM*ftPerM;
+}
+function dayLegTimeHrs(i){
+  // More realistic time estimate:
+  // - Base speed varies with climbing intensity
+  // - Heavy climbing days are slower per mile
+  const mi = dayLegMiles(i);
+  const gain = dayLegGainFt(i);
+  
+  // Climbing intensity: ft per mile
+  const climbRate = mi > 0 ? gain / mi : 0;
+  
+  // Adjust average speed based on terrain:
+  // Flat (<30 ft/mi): 14 mph
+  // Moderate (30-60 ft/mi): 12 mph  
+  // Hilly (60-100 ft/mi): 10 mph
+  // Mountainous (>100 ft/mi): 8 mph
+  let avgMph;
+  if(climbRate < 30) avgMph = 14;
+  else if(climbRate < 60) avgMph = 12;
+  else if(climbRate < 100) avgMph = 10;
+  else avgMph = 8;
+  
+  // Add time for climbing: ~1 min per 100 ft gained
+  const climbTimeHrs = gain / 100 / 60;
+  
+  return (mi / avgMph) + climbTimeHrs;
+}
+function milesFromStart(i){
+  // Sum up hard-coded leg miles for accurate cumulative distance
+  let total = 0;
+  for(let d = 1; d <= i; d++){
+    total += dayLegMiles(d);
+  }
+  return total;
+}
+function milesToEnd(i){
+  const total = milesFromStart(PARTS);
+  return Math.max(0, total - milesFromStart(i));
+}
+function elevGainFromStartFt(i){
+  // Sum up hard-coded leg gains for accurate cumulative elevation
+  let total = 0;
+  for(let d = 1; d <= i; d++){
+    total += dayLegGainFt(d);
+  }
+  return total;
+}
+function lightsOnDay(day){
+  return LIGHTHOUSES.filter(l=>l.day===day).map(l=>l.name);
+}
+function endpointNameForDay(day){
+  const cue = STOP_END_CUE[day];
+  if(cue){
+    const n = stopNameFromCue(cue);
+    if(n) return n;
+  }
+  const end = STOPS[day];
+  if(!end) return '';
+  const m = nearestMajorCity(end.lat, end.lng);
+  return m?.name || '';
+}
+function routeLabelForDay(day){
+  const a = (day===1) ? (STOP_CITY[0]||'Taichung') : (STOP_CITY[day-1]||'');
+  const b = STOP_CITY[day]||endpointNameForDay(day)||'';
+  return `${a || '—'} → ${b || '—'}`;
+}
+
+/* ======================= Rendering: route, nodes, labels ==================== */
+function clearLayer(el){ while(el.firstChild) el.removeChild(el.firstChild); }
+
+function drawRoute(){
+  routeCasing.setAttribute('d', pathFrom(RAW));
+  routePath.setAttribute('d', pathFrom(RAW));
+}
+
+/**
+ * Build the map label exactly as:
+ *   Day N End - CityName
+ * Updated: 2026-01-03
+ */
+function makeDayEndLabelSvg(x, y, dayNum, cityName){
+  const labelText = `Day ${dayNum} End - ${cityName || '—'}`;
+  console.log('Creating label:', labelText, 'for day:', dayNum, 'city:', cityName);
+  return svgEl('text', {
+    class:'label',
+    x:String(x+12),
+    y:String(y-10),
+  }, labelText);
+}
+
+function drawStops(){
+  clearLayer(nodes); clearLayer(labels);
+  
+  console.log('drawStops called. STOP_CITY:', STOP_CITY);
+  console.log('HARD_STOP_CITY:', HARD_STOP_CITY);
+
+  for(let i=0;i<=PARTS;i++){
+    const p = STOPS[i];
+    if(!p) continue;
+    let {x,y} = project(p.lat,p.lng);
+    
+    // Offset start and finish markers so they don't overlap (both are at Taichung)
+    const OFFSET = 18;
+    if(i === 0){
+      x += 8;  // Start: small offset to the right
+      y -= OFFSET;
+    } else if(i === PARTS){
+      x += OFFSET;
+      y += OFFSET;
+    }
+
+    const g = svgEl('g', { class:`node ${i===0?'start':''} ${i===PARTS?'finish':''}`, 'data-day':String(i) });
+
+    // Bigger invisible hit target
+    g.appendChild(svgEl('circle',{class:'hit', cx:x, cy:y, r:isTouch?26:20 }));
+    g.appendChild(svgEl('circle',{class:'ring', cx:x, cy:y, r:10 }));
+    g.appendChild(svgEl('circle',{class:'core', cx:x, cy:y, r:4.8 }));
+
+    g.addEventListener('pointerenter', (ev)=> onStopHover(ev,i));
+    g.addEventListener('pointermove',  (ev)=> onStopHover(ev,i));
+    g.addEventListener('pointerleave', ()=> hidePopover());
+    g.addEventListener('click', (ev)=>{ ev.preventDefault(); openDayModal(i); });
+
+    nodes.appendChild(g);
+
+    const forcedCity = (STOP_CITY?.[i] || HARD_STOP_CITY?.[i] || '').trim();
+    console.log(`Stop ${i}: forcedCity="${forcedCity}"`);
+
+    // Start stays "Start - City"
+    if(i === 0){
+      labels.appendChild(svgEl('text', { class:'label', x:x+12, y:y-10 }, `Start - ${forcedCity || 'Taichung'}`));
+      continue;
+    }
+
+    // Every day endpoint (including Day 11 finish) is "Day N End - *City*"
+    labels.appendChild(makeDayEndLabelSvg(x, y, i, forcedCity || '—'));
+  }
+}
+
+function drawLighthouses(){
+  clearLayer(lhLayer); clearLayer(lhLabels);
+
+  for(const lh of LIGHTHOUSES){
+    let {x,y} = project(lh.lat, lh.lng);
+
+    // Offset Eluanbi (South) lighthouse to avoid overlapping with Checheng stop
+    if(lh.name.includes('Eluanbi') || lh.name.includes('South')){
+      x += 15;  // Move right
+      y += 8;   // Move down slightly
+    }
+
+    const g = svgEl('g',{class:'node lh', 'data-lh': lh.name});
+
+    g.appendChild(svgEl('circle',{class:'hit', cx:x, cy:y, r:isTouch?26:20 }));
+    g.appendChild(svgEl('circle',{class:'ring', cx:x, cy:y, r:10 }));
+    g.appendChild(svgEl('circle',{class:'core', cx:x, cy:y, r:4.8 }));
+
+    g.addEventListener('pointerenter',(ev)=> onLhHover(ev,lh));
+    g.addEventListener('pointermove', (ev)=> onLhHover(ev,lh));
+    g.addEventListener('pointerleave',()=> hidePopover());
+    g.addEventListener('click', (ev)=>{ ev.preventDefault(); openLighthouseModal(lh); });
+
+    lhLayer.appendChild(g);
+
+    lhLabels.appendChild(svgEl('text',{class:'lh-label', x:x+12, y:y-10}, safeShortName(lh.name, 28)));
+  }
+}
+
+function drawRailStations(){
+  clearLayer(railLayer); clearLayer(railLabels);
+
+  for(const st of RAIL_STATIONS){
+    const {x,y} = project(st.lat, st.lng);
+    const g = svgEl('g',{class:'node rail', 'data-rail': st.name});
+    g.appendChild(svgEl('circle',{class:'hit', cx:x, cy:y, r:isTouch?24:18 }));
+    g.appendChild(svgEl('circle',{class:'ring', cx:x, cy:y, r:9 }));
+    g.appendChild(svgEl('circle',{class:'core', cx:x, cy:y, r:4.2 }));
+    railLayer.appendChild(g);
+    railLabels.appendChild(svgEl('text',{class:'rail-label', x:x+11, y:y-10}, safeShortName(st.name, 20)));
+  }
+}
+
+function setRail(on){
+  railOn = !!on;
+  railLayer.setAttribute('opacity', railOn ? '1' : '0');
+  railLabels.setAttribute('opacity', railOn ? '1' : '0');
+  btnRail.setAttribute('aria-pressed', railOn ? 'true' : 'false');
+}
+
+/* ======================= Current Position ================================== */
+let currentPosition = null;
+
+async function loadCurrentPosition(){
+  try{
+    const urls = [
+      '/photos/current/current.csv',
+      'https://huandao.lospalmos.org/photos/current/current.csv'
+    ];
+    
+    const res = await tryUrls(urls, async (u)=>{
+      const txt = await fetchText(u);
+      return txt;
+    }, 'Current position');
+    
+    if(!res.value) return;
+    
+    const lines = res.value.trim().split('\n').filter(l => l.trim());
+    if(lines.length === 0) return;
+    
+    // Parse CSV: index, lat, lon, time, ...extras (extras optional for backward compatibility)
+    let maxIndex = -1;
+    let latestEntry = null;
+    
+    for(const line of lines){
+      const parts = line.split(',').map(s => s.trim());
+      if(parts.length < 3) continue;
+      
+      const index = parseInt(parts[0], 10);
+      const lat = parseFloat(parts[1]);
+      const lon = parseFloat(parts[2]);
+      const time = parts.length >= 4 ? parts[3] : null;
+      const altitude = parts.length >= 5 ? parseFloat(parts[4]) : null;
+      const accuracy = parts.length >= 6 ? parseFloat(parts[5]) : null;
+      const altitudeAccuracy = parts.length >= 7 ? parseFloat(parts[6]) : null;
+      const speed = parts.length >= 8 ? parseFloat(parts[7]) : null;
+      const heading = parts.length >= 9 ? parseFloat(parts[8]) : null;
+      const battery = parts.length >= 10 ? parseFloat(parts[9]) : null;
+      const charging = parts.length >= 11 ? (parts[10] === '1' || parts[10].toLowerCase() === 'true') : null;
+      
+      if(!Number.isFinite(index) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      
+      if(index > maxIndex){
+        maxIndex = index;
+        latestEntry = {
+          index,
+          lat,
+          lng: lon,
+          time,
+          altitude: Number.isFinite(altitude) ? altitude : null,
+          accuracy: Number.isFinite(accuracy) ? accuracy : null,
+          altitudeAccuracy: Number.isFinite(altitudeAccuracy) ? altitudeAccuracy : null,
+          speed: Number.isFinite(speed) ? speed : null,
+          heading: Number.isFinite(heading) ? heading : null,
+          battery: Number.isFinite(battery) ? battery : null,
+          charging,
+        };
+      }
+    }
+    
+    if(latestEntry){
+      currentPosition = latestEntry;
+      drawCurrentPosition();
+    }
+  }catch(e){
+    console.log('Current position CSV not found or error:', e);
+    // Silently fail - this is optional data
+  }
+}
+
+function drawCurrentPosition(){
+  if(!currentPosition) return;
+  
+  clearLayer(currentPosLayer);
+  
+  // Safety: if coordinates are out of map bounds, don't draw (avoids “random” placement).
+  if(
+    !Number.isFinite(currentPosition.lat) ||
+    !Number.isFinite(currentPosition.lng) ||
+    currentPosition.lat < BOUNDS.bottom ||
+    currentPosition.lat > BOUNDS.top ||
+    currentPosition.lng < BOUNDS.left ||
+    currentPosition.lng > BOUNDS.right
+  ){
+    console.warn('Current position out of bounds, not drawing:', currentPosition);
+    return;
+  }
+  
+  const {x, y} = project(currentPosition.lat, currentPosition.lng);
+  
+  const g = svgEl('g', { class: 'node current-pos', 'data-current': 'true' });
+  
+  // Bicyclist emoji as text element
+  g.appendChild(svgEl('text', {
+    x: String(x),
+    y: String(y),
+    'font-size': '24',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    style: 'cursor: pointer; user-select: none;'
+  }, '🚴'));
+  
+  // Invisible hit target
+  g.appendChild(svgEl('circle', {
+    class: 'hit',
+    cx: String(x),
+    cy: String(y),
+    r: String(isTouch ? 26 : 20),
+    opacity: '0'
+  }));
+  
+  g.addEventListener('pointerenter', (ev) => {
+    showPopoverAt(ev.clientX, ev.clientY, (pop) => {
+      $('#p-title').textContent = 'Current Position';
+      const timeStr = currentPosition.time ? new Date(currentPosition.time).toLocaleString() : '—';
+      $('#p-date').textContent = timeStr;
+      $('#p-leg-name').textContent = `Index: ${currentPosition.index}`;
+      $('#p-leg-mi').textContent = (currentPosition.altitude != null) ? `${Math.round(currentPosition.altitude)} m` : '—';
+      $('#p-leg-gain').textContent = '—';
+      $('#p-city').textContent = `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`;
+      $('#p-lights').textContent = '🚴';
+    });
+  });
+  g.addEventListener('pointerleave', () => hidePopover());
+  
+  currentPosLayer.appendChild(g);
+}
+
+/* ======================= Map Photos ======================================= */
+let mapPhotos = [];
+
+async function loadMapPhotos(){
+  try{
+    // Try to load manifest first (easier than scanning directory)
+    // Manifest format: [{filename: "photo.jpg", lat: 24.123, lng: 120.456, date: "2026-02-06"}]
+    const manifestUrls = [
+      '/photos/mapphoto/manifest.json',
+      'https://huandao.lospalmos.org/photos/mapphoto/manifest.json'
+    ];
+    
+    let photoList = [];
+    
+    try{
+      const manifestRes = await tryUrls(manifestUrls, async (u) => {
+        const txt = await fetchText(u);
+        return JSON.parse(txt);
+      }, 'Map photos manifest');
+      
+      if(manifestRes.value && Array.isArray(manifestRes.value)){
+        photoList = manifestRes.value;
+      }
+    }catch(e){
+      // No manifest, we'll try to discover photos by attempting common filenames
+      console.log('No manifest found, will try to discover photos');
+    }
+    
+    // If no manifest, try a few common photo filenames
+    if(photoList.length === 0){
+      const commonNames = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg', '1.jpg', '2.jpg', '3.jpg'];
+      for(const name of commonNames){
+        photoList.push({ filename: name });
+      }
+    }
+    
+    // Load each photo and extract EXIF GPS data
+    const baseUrls = [
+      '/photos/mapphoto/',
+      'https://huandao.lospalmos.org/photos/mapphoto/'
+    ];
+    
+    const loadedPhotos = [];
+    
+    for(const photo of photoList){
+      const filename = photo.filename || photo;
+      if(!filename.match(/\.(jpg|jpeg|png|heic)$/i)) continue;
+      
+      // If manifest already has lat/lng, use those (no need to extract EXIF)
+      if(photo.lat != null && photo.lng != null && 
+         Number.isFinite(photo.lat) && Number.isFinite(photo.lng)){
+        loadedPhotos.push({
+          filename,
+          url: (photo.url || baseUrls[0] + filename),
+          lat: photo.lat,
+          lng: photo.lng,
+          date: photo.date || null
+        });
+        continue;
+      }
+      
+      // Otherwise, try to extract GPS from EXIF
+      for(const base of baseUrls){
+        try{
+          const photoUrl = base + filename;
+          const gpsData = await extractGPSFromImage(photoUrl);
+          
+          if(gpsData && Number.isFinite(gpsData.lat) && Number.isFinite(gpsData.lng)){
+            loadedPhotos.push({
+              filename,
+              url: photoUrl,
+              lat: gpsData.lat,
+              lng: gpsData.lng,
+              date: gpsData.date || null
+            });
+            break; // Found it, move to next photo
+          }
+        }catch(e){
+          // Try next URL or skip if EXIF extraction fails
+        }
+      }
+    }
+    
+    mapPhotos = loadedPhotos;
+    drawMapPhotos();
+  }catch(e){
+    console.log('Error loading map photos:', e);
+  }
+}
+
+function extractGPSFromImage(imageUrl){
+  return new Promise((resolve, reject) => {
+    // Check if EXIF library is available
+    if(typeof EXIF === 'undefined'){
+      reject(new Error('EXIF library not loaded'));
+      return;
+    }
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = function(){
+      try{
+        EXIF.getData(img, function(){
+          const lat = EXIF.getTag(this, 'GPSLatitude');
+          const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+          const lng = EXIF.getTag(this, 'GPSLongitude');
+          const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+          const dateTime = EXIF.getTag(this, 'DateTime') || EXIF.getTag(this, 'DateTimeOriginal');
+          
+          if(lat && lng && Array.isArray(lat) && Array.isArray(lng)){
+            // Convert EXIF GPS format to decimal degrees
+            const latDecimal = convertDMSToDD(lat, latRef);
+            const lngDecimal = convertDMSToDD(lng, lngRef);
+            
+            if(Number.isFinite(latDecimal) && Number.isFinite(lngDecimal)){
+              resolve({
+                lat: latDecimal,
+                lng: lngDecimal,
+                date: dateTime || null
+              });
+            }else{
+              reject(new Error('Invalid GPS coordinates'));
+            }
+          }else{
+            reject(new Error('No GPS data in image'));
+          }
+        });
+      }catch(e){
+        reject(e);
+      }
+    };
+    
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = imageUrl;
+  });
+}
+
+function convertDMSToDD(dms, ref){
+  // EXIF GPS format: [degrees, minutes, seconds] as rational numbers
+  let dd = dms[0] + dms[1]/60 + dms[2]/(60*60);
+  if(ref === 'S' || ref === 'W'){
+    dd = -dd;
+  }
+  return dd;
+}
+
+function drawMapPhotos(){
+  clearLayer(photoMarkersLayer);
+  clearLayer(photoMarkerLinesLayer);
+  
+  for(const photo of mapPhotos){
+    const {x, y} = project(photo.lat, photo.lng);
+    
+    // Offset the icon a bit (up and to the right)
+    const offsetX = x + 15;
+    const offsetY = y - 15;
+    
+    // Draw line from actual location to offset icon
+    const line = svgEl('line', {
+      x1: String(x),
+      y1: String(y),
+      x2: String(offsetX),
+      y2: String(offsetY),
+      stroke: '#365b89',
+      'stroke-width': '1.5',
+      'stroke-dasharray': '3,3',
+      opacity: '0.6'
+    });
+    photoMarkerLinesLayer.appendChild(line);
+    
+    // Draw photo icon at offset position
+    const g = svgEl('g', {
+      class: 'node map-photo',
+      'data-photo-url': photo.url,
+      'data-photo-filename': photo.filename
+    });
+    
+    // Photo icon (camera emoji or small image thumbnail)
+    g.appendChild(svgEl('text', {
+      x: String(offsetX),
+      y: String(offsetY),
+      'font-size': '20',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      style: 'cursor: pointer; user-select: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));'
+    }, '📷'));
+    
+    // Invisible hit target
+    g.appendChild(svgEl('circle', {
+      class: 'hit',
+      cx: String(offsetX),
+      cy: String(offsetY),
+      r: String(isTouch ? 26 : 20),
+      opacity: '0'
+    }));
+    
+    g.addEventListener('pointerenter', (ev) => {
+      showPopoverAt(ev.clientX, ev.clientY, (pop) => {
+        $('#p-title').textContent = photo.filename;
+        $('#p-date').textContent = photo.date || '—';
+        $('#p-leg-name').textContent = '—';
+        $('#p-leg-mi').textContent = '—';
+        $('#p-leg-gain').textContent = '—';
+        $('#p-city').textContent = `${photo.lat.toFixed(4)}, ${photo.lng.toFixed(4)}`;
+        $('#p-lights').textContent = '📷';
+      });
+    });
+    g.addEventListener('pointerleave', () => hidePopover());
+    g.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      openMapPhotoModal(photo);
+    });
+    
+    photoMarkersLayer.appendChild(g);
+  }
+}
+
+function openMapPhotoModal(photo){
+  $('#mph-title').textContent = photo.filename;
+  $('#mph-coords').textContent = `${photo.lat.toFixed(4)}, ${photo.lng.toFixed(4)}`;
+  $('#mph-date').textContent = photo.date || '—';
+  
+  const img = $('#mph-image');
+  const placeholder = $('#mph-placeholder');
+  
+  img.style.display = 'none';
+  placeholder.style.display = 'grid';
+  placeholder.textContent = 'Loading photo…';
+  
+  img.onload = function(){
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  };
+  
+  img.onerror = function(){
+    placeholder.textContent = 'Failed to load photo';
+  };
+  
+  img.src = photo.url;
+  openModal(mapPhotoHold);
+}
+
+/* ======================= Popover =========================================== */
+function showPopoverAt(clientX, clientY, htmlSetter){
+  const r = svg.getBoundingClientRect();
+  const x = clientX - r.left;
+  const y = clientY - r.top;
+
+  // Place relative to left panel
+  pop.style.left = `${r.left + x}px`;
+  pop.style.top  = `${r.top + y}px`;
+
+  htmlSetter();
+
+  pop.style.display = 'block';
+  pop.setAttribute('aria-hidden','false');
+}
+function hidePopover(){
+  pop.style.display = 'none';
+  pop.setAttribute('aria-hidden','true');
+}
+function onStopHover(ev, day){
+  const endCity = STOP_CITY[day] || endpointNameForDay(day) || '—';
+  const legMi = (day===0) ? 0 : dayLegMiles(day);
+  const gainFt = (day===0) ? 0 : dayLegGainFt(day);
+  const lights = (day===0) ? lightsOnDay(0) : lightsOnDay(day);
+  const title = (day===0) ? 'Day 1 — 宴會' : `Day ${day}`;
+
+  showPopoverAt(ev.clientX, ev.clientY, ()=>{
+    $('#p-title').textContent = title;
+    $('#p-date').textContent  = dayDate(day);
+    $('#p-leg-name').textContent = routeLabelForDay(day);
+    $('#p-leg-mi').textContent   = (day===0) ? '—' : `${legMi.toFixed(1)} mi`;
+    $('#p-leg-gain').textContent = (day===0) ? '—' : `${Math.round(gainFt)} ft`;
+    $('#p-city').textContent     = endCity;
+    $('#p-lights').textContent   = lights.length ? `${lights.length}` : '0';
+  });
+}
+function onLhHover(ev, lh){
+  showPopoverAt(ev.clientX, ev.clientY, ()=>{
+    $('#p-title').textContent = lh.name;
+    $('#p-date').textContent  = dayDate(lh.day);
+    $('#p-leg-name').textContent = `Day ${lh.day}`;
+    $('#p-leg-mi').textContent   = '—';
+    $('#p-leg-gain').textContent = '—';
+    $('#p-city').textContent     = `${lh.lat.toFixed(4)}, ${lh.lng.toFixed(4)}`;
+    $('#p-lights').textContent   = '📷';
+  });
+}
+
+/* ======================= Modals ============================================ */
+function openModal(holdEl){
+  holdEl.style.display = 'grid';
+  holdEl.setAttribute('aria-hidden','false');
+}
+function closeModal(holdEl){
+  holdEl.style.display = 'none';
+  holdEl.setAttribute('aria-hidden','true');
+}
+function wireClose(holdEl, selectors){
+  for(const sel of selectors){
+    const el = holdEl.querySelector(sel);
+    if(el) el.addEventListener('click', ()=> closeModal(holdEl));
+  }
+}
+
+function clearHoverHighlight(){
+  highlightedDay = null;
+  legCasing.setAttribute('opacity','0');
+  legPath.setAttribute('opacity','0');
+  // Also clear the path data to ensure nothing renders
+  legCasing.setAttribute('d','');
+  legPath.setAttribute('d','');
+}
+
+wireClose(modalHold, ['#m-close','#m-close-bottom']);
+wireClose(photoHold, ['#ph-close','#ph-close-bottom']);
+wireClose(mapPhotoHold, ['#mph-close','#mph-close-bottom']);
+wireClose(trackingHold, ['#tk-close','#tk-close-bottom']);
+
+// Route modal: also clear highlight on close
+for(const sel of ['#rt-close','#rt-close-bottom']){
+  const el = routeHold.querySelector(sel);
+  if(el) el.addEventListener('click', ()=> { clearHoverHighlight(); closeModal(routeHold); });
+}
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    closeModal(modalHold);
+    closeModal(routeHold);
+    closeModal(photoHold);
+    closeModal(mapPhotoHold);
+    closeModal(trackingHold);
+    closeDownloadMenus();
+    hidePopover();
+    closeThumbs();
+    closePhotosPanel();
+    closeElevOverlay();
+    clearHoverHighlight();
+  }
+});
+
+/* ======================= Day modal fill ==================================== */
+function setDayHighlight(day, on=true){
+  if(day==null || day<1 || day>PARTS) return;
+  if(on){
+    highlightedDay = day;
+    const a = STOP_RAW_INDEX[day-1] || 0;
+    const b = STOP_RAW_INDEX[day] || 0;
+    legCasing.setAttribute('d', pathFromRawSlice(a,b));
+    legPath.setAttribute('d', pathFromRawSlice(a,b));
+    legCasing.setAttribute('opacity','1');
+    legPath.setAttribute('opacity','1');
+  }else{
+    highlightedDay = null;
+    legCasing.setAttribute('opacity','0');
+    legPath.setAttribute('opacity','0');
+    // Clear path data to ensure nothing renders
+    legCasing.setAttribute('d','');
+    legPath.setAttribute('d','');
+  }
+}
+function openDayModal(day){
+  // day==0 is banquet, still show but most fields blank-ish.
+  mTitle.textContent = (day===0) ? `Day 1 — 宴會` : `Day ${day}`;
+  mDate.textContent  = dayDate(day);
+  mRoute.textContent = (day===0) ? 'Taichung' : routeLabelForDay(day);
+
+  if(day===0){
+    mLegMi.textContent = '—';
+    mFromStart.textContent = '0.0 mi';
+    mLegGain.textContent = '—';
+    mElevStart.textContent = '—';
+    mTimeLeg.textContent = '—';
+    mToEnd.textContent = `${milesToEnd(0).toFixed(1)} mi`;
+    mLights.textContent = lightsOnDay(0).length ? lightsOnDay(0).join(', ') : '—';
+    mEndpoint.textContent = 'Taichung';
+    mTodo.innerHTML = `<li>宴會 logistics / photo.</li>`;
+    mCues.textContent = 'Cue sheet not used for Day 0.';
+    dayMapIframe.src = buildEmbedSrc(LIGHTHOUSES[0].lat, LIGHTHOUSES[0].lng, 12);
+    dayMapLink.href  = buildEditUrl(LIGHTHOUSES[0].lat, LIGHTHOUSES[0].lng, 12);
+    // Clear elevation for Day 0
+    if(mElevCanvas){
+      const ctx = mElevCanvas.getContext('2d');
+      ctx.clearRect(0, 0, mElevCanvas.width, mElevCanvas.height);
+    }
+    if(mElevStats) mElevStats.innerHTML = '<span>No elevation data for Day 0</span>';
+    openModal(modalHold);
+    return;
+  }
+
+  const legMi = dayLegMiles(day);
+  const fromStart = milesFromStart(day);
+  const gainFt = dayLegGainFt(day);
+  const gainFromStart = elevGainFromStartFt(day);
+  const hrs = dayLegTimeHrs(day);
+
+  mLegMi.textContent = `${legMi.toFixed(1)} mi`;
+  mFromStart.textContent = `${fromStart.toFixed(1)} mi`;
+  mLegGain.textContent = `${Math.round(gainFt)} ft`;
+  mElevStart.textContent = `${Math.round(gainFromStart)} ft`;
+  mTimeLeg.textContent = fmtHrs(hrs);
+  mToEnd.textContent = `${milesToEnd(day).toFixed(1)} mi`;
+
+  const lights = lightsOnDay(day);
+  mLights.textContent = lights.length ? lights.join(', ') : '—';
+
+  const endCity = STOP_CITY[day] || endpointNameForDay(day) || '—';
+  mEndpoint.textContent = endCity;
+
+  // Notes / ideas
+  const items = [];
+  const cueEnd = STOP_END_CUE[day];
+  if(cueEnd){
+    items.push(`Endpoint matched to cue sheet: ${stopNameFromCue(cueEnd) || '—'} (mile ~${cueMiles(cueEnd)?.toFixed(1) ?? '—'})`);
+  }else{
+    items.push('Endpoint is effort-weighted split (no cue match).');
+  }
+  if(gainFt > 3500) items.push('Big climbing day: consider earlier start + more snack stops.');
+  if(legMi > 95)    items.push('Long day: keep stops tight, watch daylight.');
+  if(lights.length) items.push(`Lighthouse objective: ${lights.join(' • ')}`);
+
+  mTodo.innerHTML = items.map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+
+  // Cues near endpoint
+  const near = cuesNear(fromStart, 12);
+  if(!CUES.length){
+    mCues.textContent = 'Cue sheet not loaded yet.';
+  }else if(!near.length){
+    mCues.textContent = 'No cues near this point.';
+  }else{
+    mCues.innerHTML = near.map(r=>{
+      const t = escapeHtml(cueText(r));
+      const mi = r._mi?.toFixed(1) ?? '—';
+      return `<div class="row"><span>${mi} mi</span><b>${t || '—'}</b></div>`;
+    }).join('');
+  }
+
+  // Map iframe
+  const end = STOPS[day];
+  dayMapIframe.src = buildEmbedSrc(end.lat, end.lng, 10);
+  dayMapLink.href  = buildEditUrl(end.lat, end.lng, 10);
+
+  // highlight toggle
+  mToggleHighlight.textContent = (highlightedDay===day) ? 'Remove highlight' : 'Highlight day on map';
+  mToggleHighlight.onclick = ()=>{
+    if(highlightedDay===day) setDayHighlight(day,false);
+    else setDayHighlight(day,true);
+    mToggleHighlight.textContent = (highlightedDay===day) ? 'Remove highlight' : 'Highlight day on map';
+  };
+
+  openModal(modalHold);
+  
+  // Draw leg elevation profile after modal is open (so canvas has dimensions)
+  setTimeout(() => drawLegElevation(day), 50);
+}
+
+function openRouteModal(){
+  // Build table rows once each open (cheap, keeps consistent).
+  rtBody.innerHTML = '';
+  
+  // Debug: log the stop data in detail
+  console.log('=== Route Modal Debug ===');
+  console.log('RAW.length:', RAW?.length);
+  console.log('RAW_CUM_M.length:', RAW_CUM_M?.length);
+  console.log('STOPS.length:', STOPS?.length);
+  console.log('STOP_CUM_M:', JSON.stringify(STOP_CUM_M));
+  console.log('STOP_RAW_INDEX:', JSON.stringify(STOP_RAW_INDEX));
+  
+  // Check if stops are all the same (bug indicator)
+  const uniqueCumM = new Set(STOP_CUM_M.map(v => Math.round(v || 0)));
+  const uniqueRawIdx = new Set(STOP_RAW_INDEX);
+  console.log('Unique STOP_CUM_M values:', uniqueCumM.size, '(should be', PARTS+1, ')');
+  console.log('Unique STOP_RAW_INDEX values:', uniqueRawIdx.size, '(should be', PARTS+1, ')');
+  
+  if(uniqueCumM.size <= 2 || uniqueRawIdx.size <= 2){
+    console.error('BUG DETECTED: Stop positions are not being calculated correctly!');
+    console.log('This means all days have the same distance/time because stops are at the same position.');
+  }
+  
+  for(let day=1; day<=PARTS; day++){
+    const cumA = STOP_CUM_M[day-1];
+    const cumB = STOP_CUM_M[day];
+    const rawA = STOP_RAW_INDEX[day-1];
+    const rawB = STOP_RAW_INDEX[day];
+    const mi = dayLegMiles(day);
+    const gain = dayLegGainFt(day);
+    const hrs = dayLegTimeHrs(day);
+    console.log(`Day ${day}: rawIdx[${rawA}→${rawB}], cumM[${cumA?.toFixed(0)}→${cumB?.toFixed(0)}], mi=${mi.toFixed(1)}, gain=${Math.round(gain)}ft, hrs=${hrs.toFixed(2)}`);
+    
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.innerHTML = `
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);font-weight:1000;color:#143c6b">${day}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${dayDate(day)}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#0a1a32;font-weight:1000">${escapeHtml(routeLabelForDay(day))}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${mi.toFixed(1)} mi</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${Math.round(gain)} ft</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${fmtHrs(hrs)}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${lightsOnDay(day).length || 0}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${milesFromStart(day).toFixed(0)}</td>
+    `;
+    
+    // Highlight leg on hover
+    const currentDay = day; // Capture for closure
+    tr.addEventListener('mouseenter', () => setDayHighlight(currentDay, true));
+    tr.addEventListener('mouseleave', () => setDayHighlight(currentDay, false));
+    
+    tr.addEventListener('click', ()=>{ closeModal(routeHold); openDayModal(day); });
+    rtBody.appendChild(tr);
+  }
+  openModal(routeHold);
+}
+
+/* ======================= Tracking modal ==================================== */
+let trackingPoints = [];
+
+async function loadTrackingPoints(){
+  const urls = [
+    '/photos/current/current.csv',
+    'https://huandao.lospalmos.org/photos/current/current.csv'
+  ];
+  const res = await tryUrls(urls, async (u)=> await fetchText(u), 'Tracking CSV');
+  const txt = (res?.value || '').trim();
+  if(!txt) return [];
+  const lines = txt.split('\n').map(l=>l.trim()).filter(Boolean);
+  const pts = [];
+  for(const line of lines){
+    const parts = line.split(',').map(s=>s.trim());
+    if(parts.length < 3) continue;
+    const index = parseInt(parts[0], 10);
+    const lat = parseFloat(parts[1]);
+    const lon = parseFloat(parts[2]);
+    if(!Number.isFinite(index) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    pts.push({
+      index,
+      lat,
+      lng: lon,
+      time: parts[3] || null,
+      altitude: parts[4] ? parseFloat(parts[4]) : null,
+      accuracy: parts[5] ? parseFloat(parts[5]) : null,
+      altitudeAccuracy: parts[6] ? parseFloat(parts[6]) : null,
+      speed: parts[7] ? parseFloat(parts[7]) : null,
+      heading: parts[8] ? parseFloat(parts[8]) : null,
+      battery: parts[9] ? parseFloat(parts[9]) : null,
+      charging: parts[10] ? (parts[10] === '1' || parts[10].toLowerCase() === 'true') : null,
+    });
+  }
+  pts.sort((a,b)=>a.index-b.index);
+  return pts;
+}
+
+function nearestRawIndexTo(lat, lng){
+  if(!RAW?.length) return 0;
+  // Coarse scan every N points, then refine around the best.
+  const step = 10;
+  let bestI = 0;
+  let bestD = Infinity;
+  for(let i=0;i<RAW.length;i+=step){
+    const d = hav({lat,lng},{lat:RAW[i].lat, lng:RAW[i].lng});
+    if(d < bestD){ bestD = d; bestI = i; }
+  }
+  const start = Math.max(0, bestI - step);
+  const end = Math.min(RAW.length-1, bestI + step);
+  for(let i=start;i<=end;i++){
+    const d = hav({lat,lng},{lat:RAW[i].lat, lng:RAW[i].lng});
+    if(d < bestD){ bestD = d; bestI = i; }
+  }
+  return bestI;
+}
+
+function fmtTimeShort(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(!Number.isFinite(d.getTime())) return iso;
+  return d.toLocaleString();
+}
+
+function openTrackingModal(){
+  tkBody.innerHTML = '';
+  tkBody.innerHTML = `<tr><td colspan="8" style="padding:10px 8px;color:#365b89;font-weight:900">Loading…</td></tr>`;
+  openModal(trackingHold);
+
+  (async ()=>{
+    try{
+      trackingPoints = await loadTrackingPoints();
+      if(!trackingPoints.length){
+        tkBody.innerHTML = `<tr><td colspan="8" style="padding:10px 8px;color:#365b89;font-weight:900">No tracking points yet.</td></tr>`;
+        return;
+      }
+
+      // Precompute per-point derived metrics by snapping to route
+      const enriched = trackingPoints.map(p=>{
+        const rawIdx = nearestRawIndexTo(p.lat, p.lng);
+        const mi = m2mi(RAW_CUM_M[rawIdx] || 0);
+        const gainFt = RAW_GAIN_FT_CUM[rawIdx] || 0;
+        return {...p, rawIdx, mi, gainFt};
+      });
+
+      // Compute average speed between points (mph) using time + miles delta
+      for(let i=0;i<enriched.length;i++){
+        const cur = enriched[i];
+        const prev = enriched[i-1];
+        cur.avgMph = null;
+        if(prev?.time && cur.time){
+          const t0 = new Date(prev.time).getTime();
+          const t1 = new Date(cur.time).getTime();
+          if(Number.isFinite(t0) && Number.isFinite(t1) && t1>t0){
+            const dtHr = (t1 - t0) / 3600000;
+            const dMi = (cur.mi - prev.mi);
+            if(dtHr > 0 && Number.isFinite(dMi)) cur.avgMph = dMi / dtHr;
+          }
+        }
+      }
+
+      tkBody.innerHTML = '';
+      for(const p of enriched){
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'default';
+        tr.innerHTML = `
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);font-weight:1000;color:#143c6b">${p.index}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${escapeHtml(fmtTimeShort(p.time))}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${p.lat.toFixed(5)}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${p.lng.toFixed(5)}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${p.mi.toFixed(1)}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${Math.round(p.gainFt)}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${(p.altitude!=null && Number.isFinite(p.altitude)) ? Math.round(p.altitude) : '—'}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(0,0,0,.06);color:#365b89;font-weight:900">${(p.avgMph!=null && Number.isFinite(p.avgMph)) ? p.avgMph.toFixed(1) : '—'}</td>
+        `;
+
+        tr.addEventListener('mouseenter', ()=>{
+          // Preview bike at this datapoint
+          drawTrackingPreview(p);
+        });
+        tr.addEventListener('mouseleave', ()=>{
+          // Restore latest current position marker
+          drawCurrentPosition();
+        });
+        tkBody.appendChild(tr);
+      }
+    }catch(e){
+      tkBody.innerHTML = `<tr><td colspan="8" style="padding:10px 8px;color:#b71c1c;font-weight:1000">Failed to load tracking CSV.</td></tr>`;
+      console.log('Tracking load error:', e);
+    }
+  })();
+}
+
+function drawTrackingPreview(p){
+  if(!p) return;
+  // Draw the bike marker at an arbitrary point without changing currentPosition state.
+  clearLayer(currentPosLayer);
+  if(
+    !Number.isFinite(p.lat) ||
+    !Number.isFinite(p.lng) ||
+    p.lat < BOUNDS.bottom ||
+    p.lat > BOUNDS.top ||
+    p.lng < BOUNDS.left ||
+    p.lng > BOUNDS.right
+  ) return;
+
+  const {x, y} = project(p.lat, p.lng);
+  const g = svgEl('g', { class: 'node current-pos', 'data-current': 'preview' });
+  g.appendChild(svgEl('text', {
+    x: String(x),
+    y: String(y),
+    'font-size': '24',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    style: 'cursor: default; user-select: none;'
+  }, '🚴'));
+  currentPosLayer.appendChild(g);
+}
+
+/* ======================= Lighthouse modal ================================== */
+function openLighthouseModal(lh){
+  $('#ph-title').textContent = lh.name;
+  $('#ph-date').textContent  = dayDate(lh.day);
+  $('#ph-day').textContent   = (lh.day===0) ? '0 (Banquet)' : String(lh.day);
+  $('#ph-coords').textContent = `${lh.lat.toFixed(4)}, ${lh.lng.toFixed(4)}`;
+
+  const frame = $('#ph-frame');
+  const isStartMarker = (lh.name || '').includes('開始環島🥟') || (lh.day === 0);
+
+  if(isStartMarker){
+    // Show both the start + finish photos (will be uploaded later).
+    // Until each file exists, keep a placeholder visible.
+    frame.style.aspectRatio = 'unset';
+    frame.style.border = '1px solid rgba(0,0,0,.10)';
+    frame.style.background = '#fff';
+    frame.style.padding = '10px';
+    frame.style.color = '#0a1a32';
+    frame.style.display = 'grid';
+    frame.style.placeItems = 'stretch';
+
+    frame.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <figure style="margin:0;display:grid;gap:6px;">
+          <div style="font-size:12px;color:#365b89;font-weight:1000">Start</div>
+          <div style="position:relative;border-radius:10px;border:1px solid rgba(0,0,0,.10);overflow:hidden;background:repeating-linear-gradient(45deg,#f6f7f8 0 12px,#eef1f5 12px 24px);min-height:140px;">
+            <div class="ph-placeholder" style="position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;color:#6b7a90;font-weight:1000;">
+              Start photo will appear here once uploaded 📷
+            </div>
+            <img
+              src="photos/taichung/start/photo.jpg?ts=${Date.now()}"
+              alt="開始環島🥟 / 📷合照 遲先生 (Start)"
+              style="display:none;width:100%;height:100%;object-fit:cover;"
+              onload="this.style.display='block'; this.parentElement.querySelector('.ph-placeholder').style.display='none';"
+              onerror="this.style.display='none';"
+            />
+          </div>
+        </figure>
+        <figure style="margin:0;display:grid;gap:6px;">
+          <div style="font-size:12px;color:#365b89;font-weight:1000">Finish</div>
+          <div style="position:relative;border-radius:10px;border:1px solid rgba(0,0,0,.10);overflow:hidden;background:repeating-linear-gradient(45deg,#f6f7f8 0 12px,#eef1f5 12px 24px);min-height:140px;">
+            <div class="ph-placeholder" style="position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;color:#6b7a90;font-weight:1000;">
+              Finish photo will appear here once uploaded 🏁
+            </div>
+            <img
+              src="photos/taichung/finish/photo.jpg?ts=${Date.now()}"
+              alt="結束環島🏁 (Finish)"
+              style="display:none;width:100%;height:100%;object-fit:cover;"
+              onload="this.style.display='block'; this.parentElement.querySelector('.ph-placeholder').style.display='none';"
+              onerror="this.style.display='none';"
+            />
+          </div>
+        </figure>
+      </div>
+    `;
+  }else{
+    // Lighthouse photo: look for a single known file in a per-lighthouse folder.
+    // Keep placeholder visible until the file exists.
+    const folder =
+      (lh.name.includes('Guosheng') || lh.name.includes('West'))  ? 'first'  :
+      (lh.name.includes('Eluanbi')  || lh.name.includes('South')) ? 'second' :
+      (lh.name.includes('Sandiaojiao') || lh.name.includes('East')) ? 'third' :
+      (lh.name.includes('Fugui')    || lh.name.includes('North')) ? 'fourth' :
+      null;
+
+    const src = folder ? `photos/lighthouses/${folder}/photo.jpg?ts=${Date.now()}` : null;
+
+    frame.style.aspectRatio = '16/10';
+    frame.style.border = '1px solid rgba(0,0,0,.10)';
+    frame.style.background = '#fff';
+    frame.style.padding = '10px';
+    frame.style.display = 'grid';
+    frame.style.placeItems = 'stretch';
+    frame.style.color = '#0a1a32';
+
+    frame.innerHTML = `
+      <div style="position:relative;border-radius:12px;border:1px solid rgba(0,0,0,.10);overflow:hidden;background:repeating-linear-gradient(45deg,#f6f7f8 0 12px,#eef1f5 12px 24px);min-height:180px;">
+        <div class="ph-placeholder" style="position:absolute;inset:0;display:grid;place-items:center;padding:12px;text-align:center;color:#6b7a90;font-weight:1000;">
+          ${folder ? 'Lighthouse photo will appear here once uploaded 📷' : 'No folder mapping for this marker.'}
+        </div>
+        ${src ? `
+          <img
+            src="${src}"
+            alt="${escapeHtml(lh.name)}"
+            style="display:none;width:100%;height:100%;object-fit:cover;"
+            onload="this.style.display='block'; this.parentElement.querySelector('.ph-placeholder').style.display='none';"
+            onerror="this.style.display='none';"
+          />
+        ` : ''}
+      </div>
+    `;
+  }
+
+  lhMapIframe.src = buildEmbedSrc(lh.lat, lh.lng, 12);
+  lhMapLink.href  = buildEditUrl(lh.lat, lh.lng, 12);
+
+  openModal(photoHold);
+}
+
+/* ======================= Elevation: stats + canvas + heat ================== */
+function computeMaxGradePct(){
+  // Estimate max grade using a sliding window to smooth out GPS noise.
+  // We look at segments of ~50 meters minimum to get realistic grades.
+  let max = 0;
+  const MIN_DIST_M = 50; // Minimum distance for grade calculation
+  const MAX_REASONABLE_GRADE = 25; // Cap at 25% (very steep but realistic for Taiwan mountains)
+  
+  for(let i = 0; i < RAW.length; i++){
+    // Find a point at least MIN_DIST_M ahead
+    let totalDist = 0;
+    let j = i + 1;
+    while(j < RAW.length && totalDist < MIN_DIST_M){
+      totalDist += hav(RAW[j-1], RAW[j]);
+      j++;
+    }
+    
+    if(j >= RAW.length || totalDist < MIN_DIST_M) continue;
+    
+    const a = RAW[i], b = RAW[j-1];
+    if(a?.ele == null || b?.ele == null) continue;
+    
+    const riseM = (b.ele - a.ele);
+    const g = Math.abs(riseM / totalDist) * 100;
+    
+    if(Number.isFinite(g) && g <= MAX_REASONABLE_GRADE){
+      max = Math.max(max, g);
+    }
+  }
+  
+  // If we somehow got no valid grades, return a reasonable default
+  return max > 0 ? max : 0;
+}
+
+function computeMaxElevFt(){
+  let maxM = -Infinity;
+  for(const p of RAW){
+    if(p?.ele == null) continue;
+    maxM = Math.max(maxM, p.ele);
+  }
+  if(!Number.isFinite(maxM)) return 0;
+  return maxM * ftPerM;
+}
+
+function totalGainFt(){
+  // Use hard-coded leg data for accurate total
+  return elevGainFromStartFt(PARTS);
+}
+
+function totalMiles(){
+  // Use hard-coded leg data for accurate total
+  return milesFromStart(PARTS);
+}
+
+/* ===== Canvas helpers ===== */
+function sizeCanvasToCSS(canvas){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(rect.width  * dpr));
+  const h = Math.max(1, Math.round(rect.height * dpr));
+  if(canvas.width !== w || canvas.height !== h){
+    canvas.width = w;
+    canvas.height = h;
+  }
+  return {w, h, dpr};
+}
+
+/* ===== Elevation profile rendering ===== */
+let ELEV_POINTS = []; // {mi, eleFt}
+let ELEV_DAY_BREAKS = []; // day endpoints in miles [{day, mi}]
+
+function buildElevationSeries(){
+  const out = [];
+  if(!RAW?.length) return out;
+  for(let i=0;i<RAW.length;i++){
+    const mi = m2mi(RAW_CUM_M[i] || 0);
+    const eleFt = (RAW[i]?.ele == null) ? null : (RAW[i].ele * ftPerM);
+    out.push({mi, eleFt});
+  }
+  return out;
+}
+
+function buildDayBreaks(){
+  const br = [];
+  for(let day=1; day<=PARTS; day++){
+    br.push({ day, mi: milesFromStart(day) });
+  }
+  return br;
+}
+
+function drawElevation(){
+  if(!ELEV_POINTS.length) return;
+
+  const {w,h,dpr} = sizeCanvasToCSS(elevCanvas);
+  const ctx = elevCanvas.getContext('2d', {alpha:true});
+
+  // Background is handled by CSS; we only draw lines and labels.
+  ctx.clearRect(0,0,w,h);
+
+  const padL = Math.round(14*dpr);
+  const padR = Math.round(10*dpr);
+  const padT = Math.round(10*dpr);
+  const padB = Math.round(18*dpr);
+
+  // Determine min/max elevation (ignore nulls)
+  let minE = Infinity, maxE = -Infinity;
+  for(const p of ELEV_POINTS){
+    if(p.eleFt == null) continue;
+    minE = Math.min(minE, p.eleFt);
+    maxE = Math.max(maxE, p.eleFt);
+  }
+  if(!Number.isFinite(minE) || !Number.isFinite(maxE)){
+    minE = 0; maxE = 1;
+  }
+  const span = Math.max(1, maxE - minE);
+  const minY = minE - 0.05*span;
+  const maxY = maxE + 0.08*span;
+
+  const maxMi = ELEV_POINTS[ELEV_POINTS.length-1].mi || 1;
+
+  const xFor = (mi)=> padL + (mi/maxMi) * (w - padL - padR);
+  const yFor = (ft)=> padT + (1 - ((ft - minY)/(maxY - minY))) * (h - padT - padB);
+
+  // Axis baseline
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = Math.max(1, 1*dpr);
+  ctx.beginPath();
+  ctx.moveTo(padL, h - padB);
+  ctx.lineTo(w - padR, h - padB);
+  ctx.strokeStyle = 'rgba(10,26,50,0.25)';
+  ctx.stroke();
+
+  // Day break tick marks
+  if(ELEV_DAY_BREAKS.length){
+    ctx.strokeStyle = 'rgba(20,60,107,0.22)';
+    for(const br of ELEV_DAY_BREAKS){
+      const x = xFor(br.mi);
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, h - padB);
+      ctx.stroke();
+    }
+  }
+
+  // Elevation polyline
+  ctx.lineWidth = Math.max(2, 2.2*dpr);
+  ctx.strokeStyle = 'rgba(20,60,107,0.92)';
+  ctx.beginPath();
+
+  let started=false;
+  for(const p of ELEV_POINTS){
+    if(p.eleFt == null) continue;
+    const x = xFor(p.mi);
+    const y = yFor(p.eleFt);
+    if(!started){ ctx.moveTo(x,y); started=true; }
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Light fill under curve
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = 'rgba(20,60,107,1)';
+  ctx.beginPath();
+  started=false;
+  for(const p of ELEV_POINTS){
+    if(p.eleFt == null) continue;
+    const x = xFor(p.mi);
+    const y = yFor(p.eleFt);
+    if(!started){ ctx.moveTo(x,y); started=true; }
+    else ctx.lineTo(x,y);
+  }
+  ctx.lineTo(w - padR, h - padB);
+  ctx.lineTo(padL, h - padB);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Store mapping for hover/click
+  elevCanvas._map = {xFor,yFor,padL,padR,padT,padB,maxMi,minY,maxY};
+}
+
+function elevAtMile(mi){
+  // binary search nearest point by mi
+  if(!ELEV_POINTS.length) return null;
+  let lo=0, hi=ELEV_POINTS.length-1;
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+    if(ELEV_POINTS[mid].mi < mi) lo=mid+1;
+    else hi=mid;
+  }
+  const i=lo;
+  const a=ELEV_POINTS[Math.max(0,i-1)];
+  const b=ELEV_POINTS[Math.min(ELEV_POINTS.length-1,i)];
+  const pick = (Math.abs((a.mi-mi)) < Math.abs((b.mi-mi))) ? a : b;
+  if(pick.eleFt == null) return null;
+
+  // Approx grade using neighbors
+  const idx = (pick === a) ? Math.max(1, i-1) : Math.min(ELEV_POINTS.length-2, i);
+  const p0 = ELEV_POINTS[idx-1];
+  const p1 = ELEV_POINTS[idx];
+  const p2 = ELEV_POINTS[idx+1];
+
+  let grade = null;
+  if(p0?.eleFt!=null && p2?.eleFt!=null){
+    const dmi = (p2.mi - p0.mi) || 0;
+    if(dmi > 0){
+      const riseFt = (p2.eleFt - p0.eleFt);
+      const runFt = dmi * 5280;
+      grade = (riseFt/runFt) * 100;
+    }
+  }
+
+  return {mi:pick.mi, eleFt:pick.eleFt, gradePct:grade};
+}
+
+function nearestDayFromMile(mi){
+  // Find first day endpoint >= mi
+  for(let day=1; day<=PARTS; day++){
+    if(milesFromStart(day) >= mi) return day;
+  }
+  return PARTS;
+}
+
+function showElevTip(clientX, clientY, mi){
+  const map = elevCanvas._map;
+  if(!map) return;
+
+  const info = elevAtMile(mi);
+  if(!info) return;
+
+  elevTip.innerHTML = `<b>${info.mi.toFixed(1)} mi</b> • ${Math.round(info.eleFt)} ft` +
+    (info.gradePct==null ? '' : ` • ${info.gradePct.toFixed(1)}%`);
+
+  elevTip.style.display = 'block';
+
+  const rect = elevCanvas.getBoundingClientRect();
+  const x = rect.left + (info.mi/map.maxMi)*rect.width;
+  const y = rect.top  + 0.26*rect.height;
+
+  elevTip.style.left = `${x}px`;
+  elevTip.style.top  = `${y}px`;
+}
+
+function hideElevTip(){
+  elevTip.style.display = 'none';
+}
+
+/* ===== Leg elevation profile (for day modal) ===== */
+let currentLegElevData = null; // Stores {points, minMi, maxMi, minE, maxE} for current leg
+
+function buildLegElevationData(dayNum){
+  if(dayNum < 1 || dayNum > PARTS) return null;
+  
+  const startIdx = STOP_RAW_INDEX[dayNum - 1] || 0;
+  const endIdx = STOP_RAW_INDEX[dayNum] || 0;
+  
+  if(startIdx >= endIdx) return null;
+  
+  const points = [];
+  const startMi = m2mi(RAW_CUM_M[startIdx] || 0);
+  
+  let minE = Infinity, maxE = -Infinity;
+  
+  for(let i = startIdx; i <= endIdx; i++){
+    const mi = m2mi(RAW_CUM_M[i] || 0) - startMi; // Relative to leg start
+    const eleFt = (RAW[i]?.ele == null) ? null : (RAW[i].ele * ftPerM);
+    
+    if(eleFt != null){
+      minE = Math.min(minE, eleFt);
+      maxE = Math.max(maxE, eleFt);
+    }
+    
+    points.push({ mi, eleFt, rawIdx: i });
+  }
+  
+  if(!points.length || !Number.isFinite(minE)) return null;
+  
+  const maxMi = points[points.length - 1].mi;
+  
+  return { points, minMi: 0, maxMi, minE, maxE, startIdx, endIdx, dayNum };
+}
+
+function drawLegElevation(dayNum){
+  currentLegElevData = buildLegElevationData(dayNum);
+  
+  if(!currentLegElevData || !mElevCanvas) return;
+  
+  const { points, maxMi, minE, maxE } = currentLegElevData;
+  
+  // Size canvas
+  const rect = mElevCanvas.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(rect.width * dpr));
+  const h = Math.max(1, Math.round(rect.height * dpr));
+  
+  if(mElevCanvas.width !== w || mElevCanvas.height !== h){
+    mElevCanvas.width = w;
+    mElevCanvas.height = h;
+  }
+  
+  const ctx = mElevCanvas.getContext('2d', {alpha: true});
+  ctx.clearRect(0, 0, w, h);
+  
+  const padL = Math.round(10 * dpr);
+  const padR = Math.round(10 * dpr);
+  const padT = Math.round(10 * dpr);
+  const padB = Math.round(20 * dpr);
+  
+  const span = Math.max(100, maxE - minE);
+  const minY = minE - 0.08 * span;
+  const maxY = maxE + 0.12 * span;
+  
+  const xFor = (mi) => padL + (mi / maxMi) * (w - padL - padR);
+  const yFor = (ft) => padT + (1 - ((ft - minY) / (maxY - minY))) * (h - padT - padB);
+  
+  // Store mapping for interactions
+  mElevCanvas._map = { xFor, yFor, padL, padR, padT, padB, maxMi, minY, maxY, w, h, dpr };
+  
+  // Draw grid lines
+  ctx.strokeStyle = 'rgba(10,26,50,0.12)';
+  ctx.lineWidth = 1 * dpr;
+  
+  // Horizontal grid (elevation)
+  const elevStep = span > 2000 ? 1000 : span > 500 ? 500 : 200;
+  for(let e = Math.ceil(minE / elevStep) * elevStep; e <= maxE; e += elevStep){
+    const y = yFor(e);
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(w - padR, y);
+    ctx.stroke();
+    
+    // Label
+    ctx.fillStyle = 'rgba(54,91,137,0.7)';
+    ctx.font = `${10 * dpr}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`${Math.round(e)}ft`, padL + 4, y - 3 * dpr);
+  }
+  
+  // Vertical grid (miles)
+  const miStep = maxMi > 50 ? 20 : maxMi > 20 ? 10 : 5;
+  for(let m = 0; m <= maxMi; m += miStep){
+    const x = xFor(m);
+    ctx.beginPath();
+    ctx.moveTo(x, padT);
+    ctx.lineTo(x, h - padB);
+    ctx.stroke();
+  }
+  
+  // Draw baseline
+  ctx.strokeStyle = 'rgba(10,26,50,0.25)';
+  ctx.lineWidth = 1 * dpr;
+  ctx.beginPath();
+  ctx.moveTo(padL, h - padB);
+  ctx.lineTo(w - padR, h - padB);
+  ctx.stroke();
+  
+  // Draw elevation fill (gradient)
+  const gradient = ctx.createLinearGradient(0, padT, 0, h - padB);
+  gradient.addColorStop(0, 'rgba(20,60,107,0.35)');
+  gradient.addColorStop(1, 'rgba(20,60,107,0.05)');
+  
+  ctx.beginPath();
+  let started = false;
+  for(const p of points){
+    if(p.eleFt == null) continue;
+    const x = xFor(p.mi);
+    const y = yFor(p.eleFt);
+    if(!started){ ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.lineTo(xFor(maxMi), h - padB);
+  ctx.lineTo(padL, h - padB);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // Draw elevation line
+  ctx.lineWidth = Math.max(2, 2.5 * dpr);
+  ctx.strokeStyle = 'rgba(20,60,107,0.9)';
+  ctx.beginPath();
+  started = false;
+  for(const p of points){
+    if(p.eleFt == null) continue;
+    const x = xFor(p.mi);
+    const y = yFor(p.eleFt);
+    if(!started){ ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  
+  // Update stats
+  if(mElevStats){
+    const legMi = dayLegMiles(dayNum);
+    const legGain = dayLegGainFt(dayNum);
+    mElevStats.innerHTML = `
+      <span>Distance: <b>${legMi.toFixed(1)} mi</b></span>
+      <span>Gain: <b>${Math.round(legGain)} ft</b></span>
+      <span>Min: <b>${Math.round(minE)} ft</b></span>
+      <span>Max: <b>${Math.round(maxE)} ft</b></span>
+    `;
+  }
+}
+
+function showLegElevTip(clientX, mi){
+  if(!currentLegElevData || !mElevCanvas._map) return;
+  
+  const { points } = currentLegElevData;
+  const map = mElevCanvas._map;
+  
+  // Find closest point
+  let closest = null;
+  let minDist = Infinity;
+  for(const p of points){
+    const d = Math.abs(p.mi - mi);
+    if(d < minDist && p.eleFt != null){
+      minDist = d;
+      closest = p;
+    }
+  }
+  
+  if(!closest) return;
+  
+  // Calculate grade
+  let grade = null;
+  const idx = points.indexOf(closest);
+  if(idx > 0 && idx < points.length - 1){
+    const p0 = points[idx - 1];
+    const p2 = points[idx + 1];
+    if(p0?.eleFt != null && p2?.eleFt != null){
+      const dmi = p2.mi - p0.mi;
+      if(dmi > 0){
+        const riseFt = p2.eleFt - p0.eleFt;
+        const runFt = dmi * 5280;
+        grade = (riseFt / runFt) * 100;
+      }
+    }
+  }
+  
+  mElevTip.innerHTML = `<b>${closest.mi.toFixed(1)} mi</b> • ${Math.round(closest.eleFt)} ft` +
+    (grade != null ? ` • ${grade.toFixed(1)}%` : '');
+  
+  mElevTip.style.display = 'block';
+  
+  const rect = mElevCanvas.getBoundingClientRect();
+  const x = rect.left + (closest.mi / map.maxMi) * rect.width;
+  const y = rect.top + 0.2 * rect.height;
+  
+  mElevTip.style.left = `${x}px`;
+  mElevTip.style.top = `${y}px`;
+}
+
+function hideLegElevTip(){
+  if(mElevTip) mElevTip.style.display = 'none';
+}
+
+// Wire up leg elevation canvas interactions
+if(mElevCanvas){
+  mElevCanvas.addEventListener('mousemove', (e) => {
+    if(!currentLegElevData || !mElevCanvas._map) return;
+    const rect = mElevCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const mi = (x / rect.width) * mElevCanvas._map.maxMi;
+    showLegElevTip(e.clientX, mi);
+  });
+  
+  mElevCanvas.addEventListener('mouseleave', () => {
+    hideLegElevTip();
+  });
+}
+
+/* ===== Trace dot on map (follows elevation hover) ===== */
+function positionAtMile(mi){
+  // Find the point on the route at the given mile
+  if(!RAW?.length || !RAW_CUM_M?.length) return null;
+  const targetM = mi * 1609.344;
+  const idx = lowerBound(RAW_CUM_M, targetM);
+  if(idx <= 0) return RAW[0];
+  if(idx >= RAW.length) return RAW[RAW.length - 1];
+  
+  // Interpolate between points
+  const a = RAW_CUM_M[idx - 1];
+  const b = RAW_CUM_M[idx];
+  const t = (b - a) > 0 ? (targetM - a) / (b - a) : 0;
+  return lerpPoint(RAW[idx - 1], RAW[idx], Math.max(0, Math.min(1, t)));
+}
+
+function showTraceDot(mi){
+  const pt = positionAtMile(mi);
+  if(!pt) return;
+  const {x, y} = project(pt.lat, pt.lng);
+  debugDot.setAttribute('cx', x);
+  debugDot.setAttribute('cy', y);
+  debugDot.setAttribute('opacity', '1');
+}
+
+function hideTraceDot(){
+  debugDot.setAttribute('opacity', '0');
+}
+
+/* ===== Heat layer (grade-ish color) ===== */
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+function buildHeatLayer(){
+  clearLayer(heatLayer);
+  
+  if(!RAW?.length || RAW.length < 10) return;
+  
+  // Calculate grades for small segments (every ~50 points or ~1 mile chunks)
+  const SEGMENT_SIZE = Math.max(20, Math.floor(RAW.length / 100));
+  const segments = [];
+  
+  for(let i = 0; i < RAW.length - SEGMENT_SIZE; i += SEGMENT_SIZE){
+    const startIdx = i;
+    const endIdx = Math.min(i + SEGMENT_SIZE, RAW.length - 1);
+    
+    // Calculate elevation change for this segment
+    const startEle = RAW[startIdx]?.ele;
+    const endEle = RAW[endIdx]?.ele;
+    
+    // Calculate distance for this segment
+    const startDist = RAW_CUM_M[startIdx] || 0;
+    const endDist = RAW_CUM_M[endIdx] || 0;
+    const distM = endDist - startDist;
+    
+    if(distM < 1 || startEle == null || endEle == null){
+      segments.push({ startIdx, endIdx, grade: 0 });
+      continue;
+    }
+    
+    // Grade = rise/run (positive for uphill, negative for downhill)
+    const eleChangeM = endEle - startEle;
+    const grade = (eleChangeM / distM) * 100;
+    
+    segments.push({ startIdx, endIdx, grade });
+  }
+  
+  if(!segments.length) return;
+  
+  // Find min/max for normalization (use absolute grade for steepness)
+  const absGrades = segments.map(s => Math.abs(s.grade));
+  const maxAbsGrade = Math.max(...absGrades, 0.1);
+  
+  console.log(`Heat layer: ${segments.length} segments, max grade: ${maxAbsGrade.toFixed(2)}%`);
+  
+  // Create colored path segments
+  for(const seg of segments){
+    // Normalize: 0 = flat, 1 = steepest
+    // Use absolute grade so both uphills and downhills show as "hard"
+    const normalized = clamp(Math.abs(seg.grade) / maxAbsGrade, 0, 1);
+    
+    // Blue (220) for flat, Red (0) for steep
+    const hue = 220 - normalized * 220;
+    const color = `hsl(${hue} 85% 50%)`;
+    
+    const pathD = pathFromRawSlice(seg.startIdx, seg.endIdx);
+    if(!pathD) continue;
+    
+    const pathEl = svgEl('path', {
+      class:'heatSeg',
+      d: pathD,
+      stroke: color,
+      opacity: '0.95'
+    });
+    heatLayer.appendChild(pathEl);
+  }
+}
+
+function setHeatVisible(on){
+  heatLayer.setAttribute('opacity', on ? '1' : '0');
+  // Hide the regular route when heatmap is shown so colors are visible
+  routePath.setAttribute('opacity', on ? '0' : '1');
+  routeCasing.setAttribute('opacity', on ? '0' : '1');
+}
+
+/* ===== Elevation overlay open/close ===== */
+function openElevOverlay(){
+  closePhotosPanel();
+  datesCard.classList.add('isHidden');
+  elevOverlay.classList.add('isOpen');
+  btnElev.setAttribute('aria-pressed','true');
+  setHeatVisible(true);
+  drawElevation();
+}
+function closeElevOverlay(){
+  elevOverlay.classList.remove('isOpen');
+  datesCard.classList.remove('isHidden');
+  btnElev.setAttribute('aria-pressed','false');
+  setHeatVisible(false);
+  hideElevTip();
+  hideTraceDot();
+}
+
+/* ===== Photos panel / thumbnails ===== */
+function closeThumbs(){
+  thumbOverlay.classList.remove('isOpen');
+  // Reset to original logo
+  tripImage.src = 'image.png';
+  tripImage.classList.remove('photoOpen');
+  logoWrap.classList.remove('hasPhoto');
+  currentPhotoList = [];
+  currentPhotoIndex = -1;
+}
+function openThumbs(title){
+  thumbTitle.textContent = title || 'Photos';
+  thumbOverlay.classList.add('isOpen');
+}
+
+function showPhoto(index){
+  if(!currentPhotoList.length) return;
+  // Wrap around
+  if(index < 0) index = currentPhotoList.length - 1;
+  if(index >= currentPhotoList.length) index = 0;
+  
+  currentPhotoIndex = index;
+  tripImage.src = currentPhotoList[index];
+  tripImage.classList.add('photoOpen');
+  logoWrap.classList.add('hasPhoto');
+  thumbOverlay.classList.remove('isOpen');
+}
+
+function nextPhoto(){
+  if(currentPhotoIndex < 0 || !currentPhotoList.length) return;
+  showPhoto(currentPhotoIndex + 1);
+}
+
+function prevPhoto(){
+  if(currentPhotoIndex < 0 || !currentPhotoList.length) return;
+  showPhoto(currentPhotoIndex - 1);
+}
+function closePhotosPanel(){
+  photosPanel.classList.remove('isOpen');
+  datesCard.classList.remove('isHidden');
+  btnPhotos.setAttribute('aria-pressed','false');
+  photoMode = false;
+  // Reset image to logo and close thumbs
+  closeThumbs();
+  // Clear any hover highlight from day buttons
+  clearHoverHighlight();
+}
+function openPhotosPanel(){
+  closeElevOverlay();
+  datesCard.classList.add('isHidden');
+  photosPanel.classList.add('isOpen');
+  btnPhotos.setAttribute('aria-pressed','true');
+  photoMode = true;
+}
+
+/**
+ * Photo manifests:
+ * For each folder base, we try:
+ *   - manifest.json
+ *   - photos.json
+ *   - index.json
+ * Expected format: ["a.jpg","b.jpg", ...]
+ * 
+ * For day folders (day1-day11) and row1 folders (gear, prep, lighthouses, training),
+ * if no manifest exists, we use server-side listing (list-photos.php) or fallback
+ * to guessing filenames.
+ */
+async function loadAlbumManifest(folderBase, folderPath = ''){
+  const tries = ['manifest.json','photos.json','index.json'];
+  for(const name of tries){
+    try{
+      const r = await fetch(folderBase + name, {cache:'no-store'});
+      if(!r.ok) continue;
+      const j = await r.json();
+      if(Array.isArray(j)) return j.filter(x=>typeof x==='string');
+      if(Array.isArray(j?.files)) return j.files.filter(x=>typeof x==='string');
+    }catch(e){}
+  }
+  
+  // Auto-populate for folders that support list-photos (gear, prep, lighthouses, training, day1-day11)
+  if(folderPath){
+    const listed = await tryListPhotos(folderPath);
+    if(listed && listed.length) return listed;
+    // Fallback: best-effort discovery by guessing names
+    return await discoverDayPhotos(folderBase);
+  }
+  
+  return null;
+}
+
+/**
+ * List photos in a folder via PHP endpoint (if present).
+ * Returns array of filenames or null.
+ */
+async function tryListPhotos(folderKey){
+  if(!folderKey) return null;
+  try{
+    const r = await fetch(`list-photos.php?folder=${encodeURIComponent(folderKey)}`, {cache:'no-store'});
+    if(!r.ok) return null;
+    const j = await r.json();
+    if(Array.isArray(j)) return j.filter(x=>typeof x==='string');
+    if(Array.isArray(j?.files)) return j.files.filter(x=>typeof x==='string');
+  }catch(e){}
+  return null;
+}
+
+/**
+ * Auto-discover photos in day folders by trying common filenames.
+ * Tests numbered filenames (1.jpg, 2.jpg, ...) in parallel batches for speed.
+ */
+async function discoverDayPhotos(folderBase){
+  const found = [];
+  const extensions = ['jpg', 'jpeg', 'png'];
+  
+  // Test numbered filenames in parallel batches (faster than sequential)
+  // Try 1-50 first (most common case)
+  const batchSize = 10;
+  const maxNumber = 50;
+  
+  for(let start = 1; start <= maxNumber; start += batchSize){
+    const end = Math.min(start + batchSize - 1, maxNumber);
+    const promises = [];
+    
+    for(let i = start; i <= end; i++){
+      for(const ext of extensions){
+        const filename = `${i}.${ext}`;
+        promises.push(
+          testImageExists(folderBase + filename).then(exists => exists ? filename : null)
+        );
+      }
+    }
+    
+    const results = await Promise.all(promises);
+    for(const filename of results){
+      if(filename && !found.includes(filename)){
+        found.push(filename);
+      }
+    }
+    
+    // If we found nothing in this batch and we're past 10, stop early
+    if(start > 10 && found.length === 0) break;
+  }
+  
+  // Also try common patterns in parallel
+  const patterns = [
+    'photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg', 'photo5.jpg',
+    'IMG_001.jpg', 'IMG_002.jpg', 'IMG_003.jpg',
+    'DSC_001.jpg', 'DSC_002.jpg',
+  ];
+  
+  const patternResults = await Promise.all(
+    patterns.map(p => testImageExists(folderBase + p).then(exists => exists ? p : null))
+  );
+  
+  for(const filename of patternResults){
+    if(filename && !found.includes(filename)){
+      found.push(filename);
+    }
+  }
+  
+  // Sort: numbered files first (by number), then others alphabetically
+  found.sort((a, b) => {
+    const numA = parseInt(a.match(/^(\d+)/)?.[1] || '999');
+    const numB = parseInt(b.match(/^(\d+)/)?.[1] || '999');
+    if(numA !== numB) return numA - numB;
+    return a.localeCompare(b);
+  });
+  
+  return found.length > 0 ? found : null;
+}
+
+/**
+ * Test if an image URL exists by trying to load it.
+ * Uses HEAD request first (faster), falls back to Image load if needed.
+ */
+function testImageExists(url){
+  return new Promise((resolve) => {
+    // Try HEAD request first (faster, doesn't download image)
+    fetch(url + '?t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+      .then(r => resolve(r.ok && r.headers.get('content-type')?.startsWith('image/')))
+      .catch(() => {
+        // Fallback: try loading as Image
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url + '?t=' + Date.now();
+        setTimeout(() => resolve(false), 1500);
+      });
+  });
+}
+
+function createAlbumButton(f, dayNum = null){
+  const b = document.createElement('button');
+  b.type='button';
+  b.className='albumBtn';
+  b.textContent = f.title;
+  
+  // If this is a day button, add hover highlighting
+  if(dayNum != null && dayNum >= 1 && dayNum <= PARTS){
+    b.addEventListener('mouseenter', () => {
+      setDayHighlight(dayNum, true);
+    });
+    b.addEventListener('mouseleave', () => {
+      setDayHighlight(dayNum, false);
+    });
+  }
+  
+  b.addEventListener('click', async ()=>{
+    // Clear active state from all buttons in both rows
+    for(const x of albumListRow1.querySelectorAll('.albumBtn')) x.classList.remove('active');
+    for(const x of albumListRow2.querySelectorAll('.albumBtn')) x.classList.remove('active');
+    b.classList.add('active');
+
+    photosHintEl.textContent = 'Loading…';
+    // Derive folder path for list-photos (e.g. gear, preride, lighthouses, day9)
+    const folderPath = (f.base.replace(/\/$/, '').split('/').pop()) || f.key || '';
+    const list = await loadAlbumManifest(f.base, folderPath);
+    if(!list || !list.length){
+      photosHintEl.textContent = 'No photos found in this folder yet.';
+      thumbGrid.innerHTML = '';
+      openThumbs(f.title);
+      return;
+    }
+
+    photosHintEl.textContent = `Loaded ${list.length} photos. Click a thumbnail.`;
+    thumbGrid.innerHTML = '';
+
+    // Build photo URL list for navigation
+    currentPhotoList = list.map(file => f.base + file);
+
+    // Build thumbnail cards
+    for(let i=0;i<list.length;i++){
+      const file = list[i];
+      const url  = currentPhotoList[i];
+
+      const item = document.createElement('div');
+      item.className = 'thumbItem';
+      item.title = file;
+
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = file;
+      img.src = url;
+
+      const tag = document.createElement('span');
+      tag.textContent = String(i+1);
+
+      item.appendChild(img);
+      item.appendChild(tag);
+
+      item.addEventListener('click', ()=>{
+        showPhoto(i);
+      });
+
+      thumbGrid.appendChild(item);
+    }
+
+    openThumbs(f.title);
+  });
+  return b;
+}
+
+function buildAlbumButtons(){
+  albumListRow1.innerHTML = '';
+  albumListRow2.innerHTML = '';
+  
+  // Row 1: Training, Gear, Prep, Lighthouses
+  for(const f of PHOTO_FOLDERS_ROW1){
+    albumListRow1.appendChild(createAlbumButton(f));
+  }
+  
+  // Row 2: Day 1-11 (with day number for hover highlighting)
+  for(let i = 0; i < PHOTO_FOLDERS_ROW2.length; i++){
+    const f = PHOTO_FOLDERS_ROW2[i];
+    const dayNum = i + 1; // Day 1 is index 0, etc.
+    albumListRow2.appendChild(createAlbumButton(f, dayNum));
+  }
+}
+
+/* ===== Download menu ===== */
+function closeDownloadMenus(){
+  dlWrap.classList.remove('open');
+  btnDl.setAttribute('aria-expanded','false');
+  dlDaySub.classList.remove('open');
+}
+
+btnDl.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const open = !dlWrap.classList.contains('open');
+  if(open){
+    dlWrap.classList.add('open');
+    btnDl.setAttribute('aria-expanded','true');
+  }else{
+    closeDownloadMenus();
+  }
+});
+dlDayGpxBtn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  dlDaySub.classList.toggle('open');
+});
+
+document.addEventListener('click', (e)=>{
+  // close dropdown if click outside
+  if(!dlWrap.contains(e.target)) closeDownloadMenus();
+});
+
+/* ===== Per-day GPX builder ===== */
+function gpxForSlice(points, name='Huandao'){
+  // Minimal GPX 1.1 track; includes elevation if present.
+  const esc = (s)=> String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const trkpts = points.map(p=>{
+    const ele = (p.ele==null) ? '' : `<ele>${p.ele}</ele>`;
+    return `<trkpt lat="${p.lat}" lon="${p.lng}">${ele}</trkpt>`;
+  }).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="HuandaoFred" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>${esc(name)}</name><trkseg>${trkpts}</trkseg></trk>
+</gpx>`;
+}
+
+function buildDayGpxBlobs(){
+  // Day 1..PARTS, slice RAW by STOP_RAW_INDEX.
+  for(let day=1; day<=PARTS; day++){
+    const a = STOP_RAW_INDEX[day-1] || 0;
+    const b = STOP_RAW_INDEX[day] || 0;
+    const slice = RAW.slice(a, b+1);
+    const xml = gpxForSlice(slice, `Huandao Day ${day}`);
+    const blob = new Blob([xml], {type:'application/gpx+xml'});
+    DAY_GPX_BLOBS[day] = blob;
+  }
+}
+
+function buildDayDownloadLinks(){
+  dlDayLinks.innerHTML = '';
+  for(let day=1; day<=PARTS; day++){
+    const blob = DAY_GPX_BLOBS[day];
+    if(!blob) continue;
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.className = 'dlItem';
+    a.href = url;
+    a.download = `HuandaoFred_Day${String(day).padStart(2,'0')}.gpx`;
+    a.textContent = `Day ${day} — ${dayDate(day)}`;
+    a.addEventListener('click', ()=> closeDownloadMenus());
+
+    dlDayLinks.appendChild(a);
+  }
+}
+
+/* ===== Fetch utilities ===== */
+async function fetchText(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+  return await r.text();
+}
+
+async function tryUrls(urls, loader, label){
+  let lastErr = null;
+  for(const u of urls){
+    try{
+      setStatus(`${label}: trying ${u.split('/').slice(-1)[0]}…`, 'info');
+      const v = await loader(u);
+      setStatus(`${label}: loaded`, 'ok');
+      return {url:u, value:v};
+    }catch(e){
+      lastErr = e;
+      setStatus(`${label}: failed ${u.split('/').slice(-1)[0]}`, 'warn');
+    }
+  }
+  throw lastErr || new Error(`All ${label} URLs failed`);
+}
+
+/* ===== Loaders: route + cues ===== */
+async function loadRoute(){
+  // 1) Prefer GPX route (line + elevation).
+  // 2) If GPX fails, fall back to MyMaps KML line.
+  try{
+    const gpxRes = await tryUrls(ROUTE_GPX_URLS, async (u)=>{
+      const txt = await fetchText(u);
+      return parseGPX(txt);
+    }, 'Route GPX');
+
+    RAW = gpxRes.value;
+    // Set “best” working URL for downloads
+    dlFullGpx.href = gpxRes.url;
+  }catch(e){
+    setStatus('Route GPX missing — falling back to MyMaps KML…', 'warn');
+
+    const kmlTxt = await fetchText(MYMAPS_KML);
+    const {linePts} = parseKMLWithPoints(kmlTxt);
+    if(!linePts?.length) throw new Error('MyMaps KML loaded, but no LineString coordinates found.');
+    RAW = linePts;
+
+    dlFullGpx.href = '#'; // no full GPX if we only have KML
+  }
+
+  // Fit map to actual route once we have RAW
+  fitRouteOnce(RAW);
+  drawRoute();
+
+  // Stops & labels
+  buildStopsSmart();
+  buildStopCityNames();
+  buildStopNames();
+
+  // Render markers
+  drawStops();
+  drawLighthouses();
+  drawRailStations();
+  
+  // Load and render current position and map photos (async, non-blocking)
+  loadCurrentPosition();
+  loadMapPhotos();
+
+  // Elevation: build points once
+  ELEV_POINTS = buildElevationSeries();
+  ELEV_DAY_BREAKS = buildDayBreaks();
+
+  // Heat
+  buildHeatLayer();
+
+  // Stats
+  stTotalMi.textContent = `${totalMiles().toFixed(1)} mi`;
+  stGainFt.textContent  = `${Math.round(totalGainFt())} ft`;
+  stMaxFt.textContent   = `${Math.round(computeMaxElevFt())} ft`;
+  stMaxGrade.textContent = `${computeMaxGradePct().toFixed(1)}%`;
+
+  // Build day GPX downloads
+  buildDayGpxBlobs();
+  buildDayDownloadLinks();
+}
+
+async function loadCueSheet(){
+  try{
+    const res = await tryUrls(CUESHEET_URLS, async (u)=>{
+      const txt = await fetchText(u);
+      return parseCSV(txt);
+    }, 'Cue sheet');
+    CUES = res.value || [];
+    return true;
+  }catch(e){
+    CUES = [];
+    setStatus('Cue sheet not found (ok).', 'warn');
+    return false;
+  }
+}
+
+/* ===== UI wiring ===== */
+btnRail.addEventListener('click', ()=>{
+  setRail(!railOn);
+});
+
+btnRoute.addEventListener('click', ()=>{
+  openRouteModal();
+});
+
+btnTracking.addEventListener('click', ()=>{
+  openTrackingModal();
+});
+
+btnElev.addEventListener('click', ()=>{
+  if(isElevationMode()) closeElevOverlay();
+  else openElevOverlay();
+});
+btnElevClose.addEventListener('click', closeElevOverlay);
+
+btnPhotos.addEventListener('click', ()=>{
+  if(photosPanel.classList.contains('isOpen')) closePhotosPanel();
+  else openPhotosPanel();
+});
+btnPhotosClose.addEventListener('click', closePhotosPanel);
+
+thumbClose.addEventListener('click', closeThumbs);
+
+// Click on open photo to close it and return to logo
+tripImage.addEventListener('click', (e)=>{
+  if(tripImage.classList.contains('photoOpen')){
+    // Don't close if clicking near the edges (navigation zone)
+    const rect = tripImage.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const edgeZone = 50;
+    if(x < edgeZone || x > rect.width - edgeZone) return;
+    
+    tripImage.src = 'image.png';
+    tripImage.classList.remove('photoOpen');
+    logoWrap.classList.remove('hasPhoto');
+    currentPhotoIndex = -1;
+  }
+});
+
+// Photo navigation buttons
+photoPrev.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  prevPhoto();
+});
+photoNext.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  nextPhoto();
+});
+
+// Keyboard navigation for photos
+document.addEventListener('keydown', (e)=>{
+  if(!tripImage.classList.contains('photoOpen')) return;
+  if(e.key === 'ArrowLeft') prevPhoto();
+  if(e.key === 'ArrowRight') nextPhoto();
+});
+
+/* Elevation interactions */
+elevCanvas.addEventListener('mousemove', (e)=>{
+  if(!isElevationMode()) return;
+  const rect = elevCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const mi = (x / rect.width) * (elevCanvas._map?.maxMi || 1);
+  showElevTip(e.clientX, e.clientY, mi);
+  showTraceDot(mi);
+});
+elevCanvas.addEventListener('mouseleave', ()=>{
+  hideElevTip();
+  hideTraceDot();
+});
+elevCanvas.addEventListener('click', (e)=>{
+  if(!isElevationMode()) return;
+  const rect = elevCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const mi = (x / rect.width) * (elevCanvas._map?.maxMi || 1);
+  const day = nearestDayFromMile(mi);
+  openDayModal(day);
+});
+
+/* Close overlays when clicking outside on desktop-ish */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') hideElevTip();
+});
+
+/* Redraw elevation on resize */
+window.addEventListener('resize', ()=>{
+  if(isElevationMode()) drawElevation();
+});
+
+/* ===== Boot ===== */
+async function boot(){
+  try{
+    setStatus('Loading route…', 'info');
+
+    // Photos UI (safe to build early)
+    buildAlbumButtons();
+
+    await loadRoute();
+    await loadCueSheet();
+
+    // Ensure rail starts off
+    setRail(false);
+    setHeatVisible(false);
+
+    setStatus('Ready ✅', 'ok');
+  }catch(e){
+    console.error(e);
+    setStatus(`Error: ${e?.message || e}`, 'err');
+  }
+}
+
+// Start
+boot();
+</script>
+
+</body>
+</html>
